@@ -1,0 +1,27 @@
+/* CourseTransit admin menu icon */
+#adminmenu .toplevel_page_coursetransit .wp-menu-image:before {
+    content: none !important;
+}
+
+#adminmenu .toplevel_page_coursetransit .wp-menu-image img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+#coursetransit_product_data details {
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+/* Optional: cleaner accordion title spacing */
+#coursetransit_product_data details summary {
+    padding: 10px 12px;
+}
+
+#coursetransit_product_data .options_group {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 20px;
+}

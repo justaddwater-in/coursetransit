@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<ruleset name="CourseTransit">
+
+    <description>Custom PHPCS rules for CourseTransit</description>
+
+    <!-- Use WordPress standard -->
+    <rule ref="WordPress">
+        <exclude name="WordPress.WP.I18n"/>
+    </rule>
+
+    <!-- ✅ Your custom text domain -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" value="coursetransit"/>
+        </properties>
+    </rule>
+
+</ruleset>

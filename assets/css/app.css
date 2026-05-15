@@ -1,0 +1,781 @@
+/* ===============================
+   GLOBAL FIXES
+   =============================== */
+
+.swal2-container {
+    position: fixed !important;
+    z-index: 100000 !important;
+}
+
+/* Remove focus noise (keep accessibility minimal) */
+.coursetransit-actions button:focus,
+.coursetransit-actions a:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ===============================
+   TABLE CLEANUP
+   =============================== */
+
+table.dataTable.no-footer {
+    border-bottom: none !important;
+}
+
+table.dataTable {
+    border-collapse: collapse !important;
+}
+
+/* Subtle striped rows (neutral) */
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-striped-bg: #fafafa !important;
+    background-color: var(--bs-table-striped-bg) !important;
+}
+
+.table thead th {
+    color: #5a6169 !important;
+    font-weight: 700 !important;
+}
+
+.table tbody td {
+    color: #5a6169 !important;
+    font-weight: 500 !important;
+}
+
+.dt-info {
+    color: #5a6169 !important;
+    font-size: 15px !important;
+    font-weight: 400 !important;
+}
+
+.ct-font {
+    color: #5a6169 !important;
+    font-weight: 500 !important;
+}
+
+/* ===============================
+   TABS (MINIMAL STYLE)
+   =============================== */
+
+#coursetransit-tabs.nav-tabs {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+#coursetransit-tabs .nav-link {
+    color: #555;
+    border: none !important;
+    background: transparent !important;
+}
+
+#coursetransit-tabs .nav-link.active {
+    color: #000;
+    font-weight: 500;
+    border-bottom: 2px solid #000;
+}
+
+#coursetransit-tabs .nav-link:focus,
+#coursetransit-tabs .nav-link:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ===============================
+   EMAIL FORM (SCOPED)
+   =============================== */
+
+#coursetransit-email-form {
+    --ct-radius: 8px;
+}
+
+/* Card */
+#coursetransit-email-form .card {
+    border-radius: var(--ct-radius);
+    border: 1px solid #e5e5e5;
+    box-shadow: none;
+}
+
+/* LEFT PANEL TAG LIST */
+#coursetransit-email-form .list-group-item.coursetransit-tag {
+    border: none;
+    border-bottom: 1px solid #eee;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+#coursetransit-email-form .list-group-item.coursetransit-tag:hover {
+    background: #f7f7f7;
+}
+
+/* Tag layout */
+.coursetransit-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.coursetransit-tag span {
+    font-size: 13px;
+    color: #333;
+}
+
+/* Tag code pill (neutral now) */
+.coursetransit-tag code {
+    background: #f1f1f1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #333;
+}
+
+/* ===============================
+   FORM
+   =============================== */
+
+#coursetransit-email-form .form-group label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #222;
+}
+
+/* ===============================
+   ACTION BAR
+   =============================== */
+
+#coursetransit-email-form .d-flex.justify-content-between {
+    border-top: 1px solid #eee;
+    padding-top: 14px;
+    margin-top: 10px;
+}
+
+/* ===============================
+   BUTTONS (MONOCHROME)
+   =============================== */
+
+.coursetransit-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+
+.coursetransit-link-btn:hover {
+    background: #f5f5f5;
+    border-color: #ccc;
+    color: #000;
+}
+
+.coursetransit-link-arrow {
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+/* ===============================
+   MODAL / ACCORDION FIX
+   =============================== */
+
+#coursetransitActivitiesModal .card-header a:focus,
+#coursetransitActivitiesModal .card-header a:active,
+#coursetransitActivitiesModal .card-header a:focus-visible {
+    outline: none;
+    box-shadow: none;
+}
+
+#coursetransitOrderModal .modal-content {
+    color: #5a6169 !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+}
+
+.ct-label {
+    color: #6b7280 !important;
+    font-weight: 500 !important;
+}
+
+/* ===============================
+   RESPONSIVE
+   =============================== */
+
+@media (max-width: 768px) {
+
+    #coursetransit-email-form .row {
+        gap: 15px;
+    }
+
+    #coursetransit-email-form .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    #coursetransit-email-form button {
+        width: 100%;
+    }
+}
+
+#coursetransit-courses-table td:nth-child(4),
+#coursetransit-courses-table th:nth-child(4) {
+    text-align: left !important;
+}
+
+/* Force right align for date column */
+#coursetransit-instructors-table td:nth-child(5),
+#coursetransit-instructors-table th:nth-child(5) {
+    text-align: left !important;
+}
+
+div.dt-container .dt-search input {
+    padding: 0px !important;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    padding: 0 !important;
+}
+
+.main-sidebar .nav .nav-item .nav-link {
+    padding: 8px 16px;
+    /* was bigger (~12-14px) */
+    min-height: 40px;
+    /* control row height */
+    display: flex;
+    align-items: center;
+}
+
+.main-sidebar .nav .nav-link i.material-icons {
+    font-size: 18px;
+    /* slightly smaller icon */
+    margin-right: 10px;
+}
+
+/* SweetAlert Delete Button (same as table) */
+.delete_instructor {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* Hover */
+.delete_instructor:hover {
+    background: #bb2d3b !important;
+    border-color: #bb2d3b !important;
+}
+
+/* Focus */
+.delete_instructor:focus {
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3) !important;
+}
+
+.ct-setup-alert {
+    background: #fff8e8;
+    border: 1px solid #ffe7a3;
+    border-radius: 10px;
+    padding: 14px 18px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.ct-setup-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(255, 193, 7, 0.12);
+    color: #d39e00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+
+.ct-setup-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #5f4b00;
+    margin-bottom: 2px;
+}
+
+.ct-setup-text {
+    font-size: 13px;
+    color: #7a6a2f;
+}
+
+
+/* ===============================
+   WP DASHBOARD CLEANUP
+   =============================== */
+
+/* Hide WP chrome ONLY on CourseTransit page */
+body.coursetransit-page #wpadminbar,
+body.coursetransit-page #adminmenu,
+body.coursetransit-page #adminmenuback,
+body.coursetransit-page #adminmenuwrap,
+body.coursetransit-page #wpfooter {
+    display: none !important;
+}
+
+/* Remove default WP spacing */
+body.coursetransit-page #wpcontent,
+body.coursetransit-page #wpbody,
+body.coursetransit-page #wpbody-content {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.coursetransit-page #wpcontent {
+    margin-left: 0 !important;
+}
+
+/* Remove WP admin toolbar spacing */
+html.wp-toolbar {
+    padding-top: 0 !important;
+}
+
+/* Remove toolbar top padding */
+body.coursetransit-page.wp-admin {
+    padding-top: 0 !important;
+    background: #f4f5fa;
+}
+
+/* Fix admin menu icon */
+body.coursetransit-page #adminmenu .toplevel_page_coursetransit .wp-menu-image:before {
+    content: none !important;
+}
+
+body.coursetransit-page #adminmenu .toplevel_page_coursetransit .wp-menu-image img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* Hide WordPress notices ONLY on CourseTransit page */
+body.coursetransit-page .notice,
+body.coursetransit-page .update-nag,
+body.coursetransit-page .updated,
+body.coursetransit-page .error,
+body.coursetransit-page .is-dismissible,
+body.coursetransit-page .fs-notice,
+body.coursetransit-page .aioseo-notice,
+body.coursetransit-page .plugin-update-tr,
+body.coursetransit-page #wpbody-content>.notice,
+body.coursetransit-page #wpbody-content>.updated,
+body.coursetransit-page #wpbody-content>.error {
+    display: none !important;
+}
+
+/* ===============================
+   PRODUCT PANEL POLISH
+   =============================== */
+
+#coursetransit_product_data {
+    background: #fcfcfc;
+}
+
+#coursetransit_product_data h4 {
+    margin: 10px 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 6px;
+}
+
+#coursetransit_product_data .options_group {
+    padding: 12px 0;
+}
+
+#coursetransit_product_data .form-field {
+    margin: 12px 0;
+}
+
+#coursetransit_product_data input[type="text"],
+#coursetransit_product_data textarea,
+#coursetransit_product_data select {
+    border-radius: 6px;
+}
+
+#coursetransit_product_data textarea {
+    min-height: 80px;
+}
+
+#coursetransit_product_data .checkbox {
+    margin: 6px 0;
+}
+
+#coursetransit_product_data .checkbox label {
+    font-weight: 500;
+}
+
+#coursetransit_product_data .options_group:last-child {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 20px;
+}
+
+#coursetransit_product_data .options_group:last-child .form-field {
+    width: 100%;
+}
+
+#coursetransit_product_data .options_group:last-child h4 {
+    grid-column: 1 / -1;
+}
+
+#coursetransit_product_data .options_group:last-child p.form-field {
+    margin: 0;
+}
+
+/* ===============================
+   INSTRUCTOR FRONTEND
+   =============================== */
+
+.ct-instructor-single {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.ct-instructor-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.ct-instructor-content {
+    flex: 1;
+}
+
+.ct-instructor-headline {
+    margin: 0 0 10px;
+    color: #666;
+}
+
+.ct-instructor-focus {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ct-instructor-focus-item {
+    background: #f1f1f1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.ct-instructor-excerpt {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.ct-instructor-excerpt-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.ct-instructor-excerpt-headline {
+    margin: 2px 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.ct-instructor-excerpt-text {
+    margin: 6px 0;
+    color: #444;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+
+    .ct-instructor-single,
+    .ct-instructor-excerpt {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ct-instructor-avatar,
+    .ct-instructor-excerpt-avatar {
+        width: 70px;
+        height: 70px;
+    }
+}
+
+.ct-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 9999;
+}
+
+.ct-card {
+    width: 90%;
+    max-width: 92%;
+    max-height: 80vh;
+
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+    box-shadow: none;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    display: flex;
+    flex-direction: column;
+    animation: ctFadeIn 0.2s ease;
+}
+
+/* HEADER */
+.ct-header {
+    padding: 22px 26px 10px;
+}
+
+.ct-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.ct-header p {
+    font-size: 13px;
+    color: #555;
+}
+
+/* BODY */
+.ct-body {
+    padding: 18px 26px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* HELP BOX */
+.ct-help {
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 12px;
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+
+/* CHECKLIST */
+.ct-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+
+.ct-checklist li {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+
+    border: 1px solid #eee;
+    background: #fff;
+}
+
+/* subtle states */
+.ct-checklist li.ok {
+    opacity: 0.6;
+}
+
+.ct-checklist li.bad {
+    border-color: #ddd;
+}
+
+.ct-icon {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ct-text strong {
+    font-size: 14px;
+}
+
+.ct-desc {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+/* FOOTER */
+.ct-footer {
+    padding: 14px 26px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.ct-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ct-actions .left {
+    font-size: 12px;
+    color: #777;
+}
+
+/* BUTTONS */
+
+
+.ct-actions .button-secondary {
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+/* SCROLLBAR (nice touch) */
+.ct-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.ct-body::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}
+
+/* LOCK BG */
+body.ct-modal-open {
+    overflow: hidden;
+}
+
+/* ANIMATION */
+@keyframes ctFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* ===============================
+   DASHBOARD HELPERS
+   =============================== */
+
+.ct-setup-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.ct-setup-col {
+    flex: 1;
+}
+
+.ct-setup-heading {
+    display: block;
+    margin-bottom: 10px;
+}
+
+.ct-setup-image {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #eee;
+}
+
+.ct-action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.ct-page-header {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.ct-full-card {
+    max-width: 100% !important;
+}
+
+.ct-card-header {
+    padding-left: 0;
+}
+
+.ct-card-header-sm {
+    padding: 10px 0;
+}
+
+.ct-nowrap {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+
+    .ct-setup-layout {
+        flex-direction: column;
+    }
+}
+
+/* ===============================
+   PRODUCT TAB ICON
+   =============================== */
+
+#woocommerce-product-data ul.wc-tabs li.coursetransit_tab a::before {
+    content: "" !important;
+    font-family: unset !important;
+
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+
+    background-image: url('../images/logo_s.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+
+    vertical-align: middle;
+}
+
+/* Match WooCommerce tab alignment */
+#woocommerce-product-data ul.wc-tabs li.coursetransit_tab a {
+    display: flex;
+    align-items: center;
+}
+
+/* Course content accordion spacing */
+#coursetransit_product_data details {
+    margin: 10px;
+}
+
+#coursetransit_product_data h4.ct-section-title {
+    margin-left: 10px;
+}
+
+.ct-back-link,
+.ct-back-link:hover,
+.ct-back-link:focus,
+.ct-back-link:active {
+    text-decoration: none !important;
+}
+

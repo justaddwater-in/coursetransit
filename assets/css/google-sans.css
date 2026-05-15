@@ -1,0 +1,41 @@
+@font-face {
+    font-family: 'Google Sans';
+    src: url('../fonts/google-sans/GoogleSans-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    src: url('../fonts/google-sans/GoogleSans-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Google Sans';
+    src: url('../fonts/google-sans/GoogleSans-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply ONLY to CourseTransit UI */
+body.wp-admin {
+    font-family: 'Google Sans', system-ui, -apple-system,
+        'Segoe UI', Roboto, sans-serif;
+}
+
+/* Force Google Sans inside CourseTransit app */
+/* Apply Google Sans safely */
+body.wp-admin .main-content,
+body.wp-admin .main-content *:not(i):not(span):not(.material-icons):not(.dashicons) {
+    font-family: 'Google Sans', system-ui, -apple-system,
+        'Segoe UI', Roboto, sans-serif;
+}
+
+body.wp-admin {
+    overflow-x: hidden;
+}
