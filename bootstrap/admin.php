@@ -8,17 +8,39 @@ use CourseTransit\Route;
  */
 add_action('admin_init', function () {
 
-    if (!isset($_SERVER['REQUEST_METHOD']) || sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'])) !== 'POST') {
+    $method = isset($_SERVER['REQUEST_METHOD'])
+        ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))
+        : '';
+
+    if ($method !== 'POST') {
         return;
     }
 
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice check.
-    if (!isset($_GET['page']) || $_GET['page'] !== 'coursetransit') {
+    $page = '';
+
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
+    if (isset($_GET['page'])) {
+        $page = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
+            wp_unslash($_GET['page'])
+        );
+    }
+
+    if ($page !== 'coursetransit') {
         return;
     }
 
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin route check only.
-    if (!isset($_GET['route'])) {
+    $route = '';
+
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Internal admin routing only.
+    if (isset($_GET['route'])) {
+        $route = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
+            wp_unslash($_GET['route'])
+        );
+    }
+
+    if (!$route) {
         return;
     }
 
@@ -58,8 +80,17 @@ add_action('admin_menu', function () {
  */
 add_action('admin_enqueue_scripts', function () {
 
+    $page = '';
+
     // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
-    if (!isset($_GET['page']) || $_GET['page'] !== 'coursetransit') {
+    if (isset($_GET['page'])) {
+        $page = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
+            wp_unslash($_GET['page'])
+        );
+    }
+
+    if ($page !== 'coursetransit') {
         return;
     }
 
@@ -82,8 +113,18 @@ add_action('admin_enqueue_scripts', function () {
  * Load Google Sans font for CourseTransit page
  */
 add_action('admin_enqueue_scripts', function () {
+
+    $page = '';
+
     // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
-    if (!isset($_GET['page']) || $_GET['page'] !== 'coursetransit') {
+    if (isset($_GET['page'])) {
+        $page = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
+            wp_unslash($_GET['page'])
+        );
+    }
+
+    if ($page !== 'coursetransit') {
         return;
     }
 
@@ -95,23 +136,11 @@ add_action('admin_enqueue_scripts', function () {
     );
 });
 
-/**
- * Add custom body class for CourseTransit page
- */
-add_filter('admin_body_class', function ($classes) {
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
-    if (isset($_GET['page']) && $_GET['page'] === 'coursetransit') {
-        $classes .= ' coursetransit-page';
-    }
-    return $classes;
-});
-
-
 
 
 add_action('init', function () {
 
-    register_post_type('ct_instructor', [
+    register_post_type('ctransit_instructor', [
         'label' => esc_html__('Instructors', 'coursetransit'),
         'public' => true,
         'publicly_queryable' => true,
@@ -125,7 +154,7 @@ add_action('init', function () {
 
 add_filter('the_content', function ($content) {
 
-    if (!is_singular('ct_instructor')) {
+    if (!is_singular('ctransit_instructor')) {
         return $content;
     }
 
@@ -186,7 +215,7 @@ add_filter('the_content', function ($content) {
 
 add_filter('the_excerpt', function ($excerpt) {
 
-    if (!is_post_type_archive('ct_instructor') || !in_the_loop()) {
+    if (!is_post_type_archive('ctransit_instructor') || !in_the_loop()) {
         return $excerpt;
     }
 
@@ -231,66 +260,73 @@ add_filter('the_excerpt', function ($excerpt) {
 
 add_action('admin_init', function () {
 
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
-    if (!isset($_GET['action']) || $_GET['action'] !== 'activate')
-        return;
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
-    if (!isset($_GET['plugin']))
-        return;
+    $action = '';
+    $plugin = '';
 
     // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
-    if ($_GET['plugin'] !== plugin_basename(__FILE__))
+    if (isset($_GET['action'])) {
+        $action = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
+            wp_unslash($_GET['action'])
+        );
+    }
+
+    if ($action !== 'activate') {
         return;
+    }
+
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
+    if (isset($_GET['plugin'])) {
+        $plugin = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- WordPress core plugin activation flow.
+            wp_unslash($_GET['plugin'])
+        );
+    }
+
+    if ($plugin !== plugin_basename(COURSETRANSIT_FILE)) {
+        return;
+    }
 
     // If WooCommerce NOT active → block
     if (!class_exists('WooCommerce')) {
 
-        deactivate_plugins(plugin_basename(__FILE__));
+        deactivate_plugins(plugin_basename(COURSETRANSIT_FILE));
 
-        wp_safe_redirect(admin_url('plugins.php?coursetransit_error=1'));
+        wp_safe_redirect(
+            admin_url('plugins.php?coursetransit_error=1')
+        );
+
         exit;
     }
 });
 
 
-add_action('admin_notices', function () {
+add_action('after_plugin_row_' . plugin_basename(COURSETRANSIT_FILE), function () {
+    
+        if (class_exists('WooCommerce')) {
+            return;
+        }
 
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice check.
-    if (!isset($_GET['coursetransit_error']))
-        return;
+        $woo_file = WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
 
-    echo '<div class="notice notice-error is-dismissible">
-        <p><strong>CourseTransit:</strong> WooCommerce must be installed and activated.</p>
-    </div>';
-});
+        if (file_exists($woo_file)) {
 
+            // Installed but NOT active
+            $action_url = wp_nonce_url(
+                admin_url('plugins.php?action=activate&plugin=woocommerce/woocommerce.php'),
+                'activate-plugin_woocommerce/woocommerce.php'
+            );
 
-add_action('after_plugin_row_' . plugin_basename(__FILE__), function () {
+            $action_text = esc_html__('Activate WooCommerce', 'coursetransit');
 
-    if (class_exists('WooCommerce')) {
-        return;
-    }
+        } else {
 
-    $woo_file = WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
+            // Not installed
+            $action_url = admin_url('plugin-install.php?s=woocommerce&tab=search&type=term');
+            $action_text = esc_html__('Install WooCommerce', 'coursetransit');
+        }
 
-    if (file_exists($woo_file)) {
-
-        // Installed but NOT active
-        $action_url = wp_nonce_url(
-            admin_url('plugins.php?action=activate&plugin=woocommerce/woocommerce.php'),
-            'activate-plugin_woocommerce/woocommerce.php'
-        );
-
-        $action_text = 'Activate WooCommerce';
-
-    } else {
-
-        // Not installed
-        $action_url = admin_url('plugin-install.php?s=woocommerce&tab=search&type=term');
-        $action_text = 'Install WooCommerce';
-    }
-
-    echo '<tr class="plugin-update-tr">
+        echo '<tr class="plugin-update-tr">
         <td colspan="4" class="plugin-update colspanchange">
             <div class="update-message notice inline notice-error notice-alt">
                 <p>
@@ -300,7 +336,8 @@ add_action('after_plugin_row_' . plugin_basename(__FILE__), function () {
             </div>
         </td>
     </tr>';
-});
+    }
+);
 
 
 if (!class_exists('WooCommerce')) {

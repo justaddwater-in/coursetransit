@@ -33,15 +33,22 @@ class Router
     // Dispatch route
     public static function dispatch(): void
     {
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Internal admin routing only.
-        $route =
-            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Internal admin routing only.
-            isset($_GET['route']) ? sanitize_text_field(wp_unslash($_GET['route']))
-            : 'dashboard.index';
+        $route = 'dashboard.index';
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin routing.
+        if (isset($_GET['route'])) {
+
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin routing.
+            $route = sanitize_text_field(wp_unslash($_GET['route']));
+        }
 
         $method = isset($_SERVER['REQUEST_METHOD'])
             ? sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD']))
             : 'GET';
+
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('Unauthorized access.', 'coursetransit'));
+        }
 
         self::$currentRoute = $route;
 

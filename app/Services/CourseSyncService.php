@@ -460,7 +460,7 @@ class CourseSyncService
     {
         global $wpdb;
 
-        $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
+        $table = $wpdb->prefix . 'coursetransit_courses';
 
         // Fetch course from DB
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching

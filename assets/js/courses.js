@@ -207,20 +207,23 @@ jQuery(function ($) {
 
     const table = $('#coursetransit-courses-table').DataTable({
         processing: true,
-        serverSide: true,
         pageLength: 10,
         lengthChange: false,
         autoWidth: false,
         ordering: true,
+        search: {
+            smart: false
+        },
         language: {
             search: ''
         },
 
-        order: [[2, 'asc']], // fullname column
+        order: [], // fullname column
 
         ajax: {
             url: CourseTransitAjax.ajax_url,
             type: 'GET',
+            dataSrc: 'data',
             data: {
                 action: 'coursetransit_courses_table',
                 _ajax_nonce: CourseTransitAjax.nonce

@@ -77,7 +77,9 @@ add_action('wp_ajax_coursetransit_save_email_template', function () {
         wp_send_json_error('Invalid request');
     }
 
-    $template_key = sanitize_key($_POST['template']);
+    $template_key = sanitize_key(
+        wp_unslash($_POST['template'])
+    );
 
     // Allow current + new template
     if (!in_array($template_key, ['enrollment', 'enrollment_existing'], true)) {
@@ -106,7 +108,14 @@ add_action('wp_ajax_coursetransit_get_email_template', function () {
         wp_send_json_error('Unauthorized');
     }
 
-    $key = sanitize_key($_POST['template'] ?? '');
+    $key = '';
+
+    if (isset($_POST['template'])) {
+
+        $key = sanitize_key(
+            wp_unslash($_POST['template'])
+        );
+    }
 
     $templates = get_option('coursetransit_email_templates', []);
 
@@ -135,19 +144,4 @@ add_action('wp_ajax_coursetransit_instructor_courses', function () {
     (new InstructorController())->coursesList();
 });
 
-add_action('wp_ajax_coursetransit_fix_wc_settings', function () {
 
-    check_ajax_referer('coursetransit_nonce');
-
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Unauthorized');
-    }
-
-    update_option('woocommerce_enable_checkout_login_reminder', 'yes');
-    update_option('woocommerce_enable_signup_and_login_from_checkout', 'yes');
-    update_option('woocommerce_registration_generate_password', 'yes');
-
-    wp_send_json_success([
-        'message' => 'WooCommerce settings updated successfully'
-    ]);
-});

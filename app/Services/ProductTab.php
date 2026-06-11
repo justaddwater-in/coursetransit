@@ -126,13 +126,29 @@ class ProductTab
                 continue;
             }
 
-            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-            $value = wp_unslash($_POST[$key]);
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            $raw_value = wp_unslash($_POST[$key]); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+
+            switch ($sanitize) {
+
+                case 'intval':
+                    $value = intval($raw_value);
+                    break;
+
+                case 'sanitize_textarea_field':
+                    $value = sanitize_textarea_field($raw_value);
+                    break;
+
+                case 'sanitize_text_field':
+                default:
+                    $value = sanitize_text_field($raw_value);
+                    break;
+            }
 
             update_post_meta(
                 $product_id,
                 $key,
-                call_user_func($sanitize, $value)
+                $value
             );
         }
 

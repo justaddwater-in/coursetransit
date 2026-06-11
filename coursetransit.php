@@ -116,12 +116,13 @@ register_activation_hook(__FILE__, function () {
 
 add_filter('admin_body_class', function ($classes) {
 
-    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin page check.
-    $page = isset($_GET['page'])
-        ? sanitize_text_field(wp_unslash($_GET['page']))
-        : '';
+    $screen = get_current_screen();
 
-    if ($page === 'coursetransit') {
+    if (
+        $screen &&
+        isset($screen->id) &&
+        strpos($screen->id, 'coursetransit') !== false
+    ) {
         $classes .= ' coursetransit-page';
     }
 
@@ -145,7 +146,16 @@ add_action('plugins_loaded', function () {
 add_action('admin_notices', function () {
 
     // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice check.
-    $coursetransit_error = isset($_GET['coursetransit_error']) ? sanitize_text_field(wp_unslash($_GET['coursetransit_error'])) : '';
+    $coursetransit_error = '';
+
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice check.
+    if (isset($_GET['coursetransit_error'])) {
+
+        $coursetransit_error = sanitize_text_field(
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin notice check.
+            wp_unslash($_GET['coursetransit_error'])
+        );
+    }
 
     if (!$coursetransit_error) {
         return;
@@ -173,13 +183,13 @@ add_action('after_plugin_row_' . plugin_basename(__FILE__), function () {
             'activate-plugin_woocommerce/woocommerce.php'
         );
 
-        $action_text = 'Activate WooCommerce';
+        $action_text = esc_html__('Activate WooCommerce', 'coursetransit');
 
     } else {
 
         // Not installed
         $action_url = admin_url('plugin-install.php?s=woocommerce&tab=search&type=term');
-        $action_text = 'Install WooCommerce';
+        $action_text = esc_html__('Install WooCommerce', 'coursetransit');
     }
 
     echo '<tr class="plugin-update-tr">

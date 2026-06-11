@@ -198,53 +198,190 @@ class MoodleEnrollmentService
         );
     }
 
-    protected static function call(string $base, string $token, string $function, array $params = [])
-    {
-        $endpoint = rtrim($base, '/') . '/auth/coursetransit/api.php';
+    protected static function call(
+        string $base,
+        string $token,
+        string $function,
+        array $params = []
+    ) {
 
-        $payload = [
-            'token' => $token,
-            'function' => $function,
-            'payload' => $params,
-        ];
+        $endpoint =
+            rtrim(
+                $base,
+                '/'
+            ) .
+            '/webservice/rest/server.php';
 
-        $response = wp_remote_post($endpoint, [
-            'timeout' => 90,
-            'sslverify' => true,
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'Origin' => site_url(),
-                'Referer' => site_url(),
-            ],
-            'body' => wp_json_encode($payload),
-        ]);
+        $payload =
+            array_merge(
+                [
+                    'siteurl' =>
+                        site_url(),
+                ],
+                $params
+            );
 
-        if (is_wp_error($response)) {
+        $response =
+            wp_remote_post(
+                $endpoint,
+                [
+                    'timeout' => 90,
+                    'sslverify' => true,
+
+                    'headers' => [
+                        'Accept' =>
+                            'application/json',
+
+                        'Origin' =>
+                            site_url(),
+
+                        'Referer' =>
+                            site_url(),
+                    ],
+
+                    'body' => [
+                        'wstoken' =>
+                            $token,
+
+                        'wsfunction' =>
+                            'auth_coursetransit_execute_action',
+
+                        'moodlewsrestformat' =>
+                            'json',
+
+                        'function' =>
+                            $function,
+
+                        'payload' =>
+                            wp_json_encode(
+                                $payload
+                            ),
+                    ],
+                ]
+            );
+
+        if (
+            is_wp_error(
+                $response
+            )
+        ) {
             return [
                 'success' => false,
-                'error' => $response->get_error_message(),
+                'error' =>
+                    $response
+                        ->get_error_message(),
             ];
         }
 
-        $body = wp_remote_retrieve_body($response);
-        $json = json_decode($body, true);
+        $status =
+            wp_remote_retrieve_response_code(
+                $response
+            );
 
-        // Moodle returns "null" for some successful calls (like enrolment)
-        if ($body === 'null' || $json === null) {
+        $body =
+            wp_remote_retrieve_body(
+                $response
+            );
+
+        if ($status !== 200) {
+            return [
+                'success' => false,
+                'error' =>
+                    'Connection failed',
+                'raw' =>
+                    $body,
+            ];
+        }
+
+        $json =
+            json_decode(
+                $body,
+                true
+            );
+
+        if (
+            !is_array(
+                $json
+            )
+        ) {
+            return [
+                'success' => false,
+                'error' =>
+                    'Invalid JSON response',
+                'raw' =>
+                    $body,
+            ];
+        }
+
+        // Native Moodle exception.
+        if (
+            !empty(
+                $json['exception']
+            )
+        ) {
+            return [
+                'success' => false,
+                'error' =>
+                    $json['message']
+                    ?? 'Moodle error',
+            ];
+        }
+
+        // CourseTransit wrapper failure.
+        if (
+            empty(
+                $json['success']
+            )
+        ) {
+
+            $errordata = [];
+
+            if (
+                !empty(
+                    $json['data']
+                )
+            ) {
+                $errordata =
+                    json_decode(
+                        $json['data'],
+                        true
+                    );
+            }
+
+            return [
+                'success' => false,
+                'error' =>
+                    $errordata['message']
+                    ?? $errordata['error']
+                    ?? 'Request failed',
+            ];
+        }
+
+        // Decode wrapped Moodle response.
+        $decoded = null;
+
+        if (
+            !empty(
+                $json['data']
+            )
+        ) {
+            $decoded =
+                json_decode(
+                    $json['data'],
+                    true
+                );
+        }
+
+        // Moodle sometimes returns null on success
+        // (manual enrol/unenrol etc.)
+        if (
+            $json['data'] === 'null'
+            || $decoded === null
+        ) {
             return null;
         }
 
-        // Only treat as error if truly invalid
-        if (!is_array($json)) {
-            return [
-                'success' => false,
-                'error' => 'Invalid JSON',
-                'raw' => $body,
-            ];
-        }
-
-        return $json;
+        return $decoded;
     }
 
     protected static function sendEnrollmentEmail(
