@@ -2,7 +2,7 @@
 Contributors: him-developer,justaddwater
 Tags: moodle, woocommerce, lms, course sync, elearning
 Requires at least: 6.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
 Stable tag: 1.3.0
 License: GPLv3 or later

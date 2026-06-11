@@ -46,189 +46,155 @@ class CoursesController extends BaseController
 
         global $wpdb;
 
-        $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
-
-        $draw = intval($_GET['draw'] ?? 1);
-        $start = intval($_GET['start'] ?? 0);
-        $length = intval($_GET['length'] ?? 10);
-        // $search = sanitize_text_field($_GET['search']['value'] ?? '');
-        $search = isset($_GET['search']['value'])
-            ? sanitize_text_field(wp_unslash($_GET['search']['value']))
-            : '';
-
-        $columns = [
-            'sr',
-            'course_image_url',
-            'fullname',
-            'shortname',
-            'visible',
-            'last_synced_at',
-        ];
-
-        $allowedOrderColumns = [
-            'fullname',
-            'shortname',
-            'visible',
-            'last_synced_at',
-        ];
-
-        $orderColumnIndex = intval($_GET['order'][0]['column'] ?? 2);
-        $orderColumn = $columns[$orderColumnIndex] ?? 'fullname';
-
-        if (!in_array($orderColumn, $allowedOrderColumns, true)) {
-            $orderColumn = 'fullname';
-        }
-
-        $orderDir = ($_GET['order'][0]['dir'] ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
-        $orderDir = ($orderDir === 'DESC') ? 'DESC' : 'ASC';
-
-        $where = 'WHERE moodle_id != %d';
-        $whereArgs = [1];
-
-        if ($search) {
-
-            $like = '%' . $wpdb->esc_like($search) . '%';
-
-            $where .= ' AND (fullname LIKE %s OR shortname LIKE %s)';
-
-            $whereArgs[] = $like;
-            $whereArgs[] = $like;
-        }
-
-
-        /* ---------------- TOTAL ---------------- */
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-        $total = (int) $wpdb->get_var(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table} WHERE moodle_id != %d",
-                1
-            )
-        );
-
-        /* ---------------- FILTERED ---------------- */
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-        $filtered = (int) $wpdb->get_var(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-
-            $wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table} {$where}",
-                ...$whereArgs
-            )
-        );
-
-        /* ---------------- MAIN QUERY ---------------- */
-        $queryArgs = array_merge($whereArgs, [$length, $start]);
-
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $rows = $wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->prepare(
-                "
-            SELECT id, moodle_id, wc_product_id, fullname, shortname, visible,
-                   last_synced_at, course_image_url, activities_json
-            FROM {$table}
-            {$where}
+            "
+            SELECT
+                id,
+                moodle_id,
+                wc_product_id,
+                fullname,
+                shortname,
+                visible,
+                last_synced_at,
+                course_image_url
+            FROM {$wpdb->prefix}coursetransit_courses
+            WHERE moodle_id != 1
             ORDER BY
-                CAST(visible AS UNSIGNED) DESC,
-                last_synced_at DESC,
-                {$orderColumn} {$orderDir}
-            LIMIT %d OFFSET %d
+                CASE visible
+                    WHEN 'draft' THEN 1
+                    ELSE 0
+                END ASC,
+                last_synced_at DESC
             ",
-                ...$queryArgs
-            ),
             ARRAY_A
         );
 
-        /* ---------------- FORMAT DATA ---------------- */
-        $sr = $start + 1;
+        $sr = 1;
 
         $data = array_map(function ($row) use (&$sr) {
 
             $product_id = (int) ($row['wc_product_id'] ?? 0);
+
+            /* ----------------------------------------
+             * PRICE
+             * ------------------------------------- */
+
             $price = '—';
 
             if ($product_id) {
+
                 $product = wc_get_product($product_id);
 
                 if ($product) {
+
                     $regular = $product->get_regular_price();
                     $sale = $product->get_sale_price();
 
                     if ($sale) {
-                        $price = '<del>' . wc_price($regular) . '</del> <ins>' . wc_price($sale) . '</ins>';
+
+                        $price = '<del>' . wc_price($regular) . '</del>
+                        <ins>' . wc_price($sale) . '</ins>';
+
                     } elseif ($regular) {
+
                         $price = wc_price($regular);
                     }
                 }
             }
 
+            /* ----------------------------------------
+             * IMAGE
+             * ------------------------------------- */
+
             $placeholder = COURSETRANSIT_ASSETS_URL . 'images/course-placeholder1.png';
 
-            $imageUrl = !empty($row['course_image_url'])
+            $image_url = !empty($row['course_image_url'])
                 ? esc_url($row['course_image_url'])
                 : esc_url($placeholder);
 
             $image = '
-            <img
-                src="' . $imageUrl . '"
-                alt="Course image"
-                style="
-                    width:42px;
-                    height:42px;
-                    object-fit:cover;
-                    border-radius:6px;
-                    background:#f3f4f6;
-                "
-            >
-        ';
+                <img
+                    src="' . $image_url . '"
+                    alt="Course image"
+                    style="
+                        width:42px;
+                        height:42px;
+                        object-fit:cover;
+                        border-radius:6px;
+                        background:#f3f4f6;
+                    "
+                >
+            ';
+
+            /* ----------------------------------------
+             * STATUS
+             * ------------------------------------- */
+
+            $status = '<span class="badge badge-light">—</span>';
+
+            if ($product_id) {
+
+                $product = wc_get_product($product_id);
+
+                if ($product) {
+
+                    $product_status = $product->get_status();
+
+                    $map = [
+                        'publish' => '<span class="badge badge-success">Published</span>',
+                        'draft' => '<span class="badge badge-secondary">Draft</span>',
+                        'pending' => '<span class="badge badge-secondary">Pending</span>',
+                        'private' => '<span class="badge badge-secondary">Private</span>',
+                    ];
+
+                    $status = $map[$product_status]
+                        ?? '<span class="badge badge-light">'
+                        . esc_html(ucfirst($product_status))
+                        . '</span>';
+                }
+            }
+
+            /* ----------------------------------------
+             * ACTIONS
+             * ------------------------------------- */
 
             $actions = [];
-            $actions[] = '<div class="coursetransit-actions" style="
-            display:flex;
-            gap:6px;
-            align-items:center;
-        ">';
+
+            $actions[] = '
+                <div class="coursetransit-actions" style="
+                    display:flex;
+                    gap:6px;
+                    align-items:center;
+                ">
+            ';
 
             /* Sync */
+
             $actions[] = '
-            <button
-                class="button button-small sync-course"
-                data-moodle-id="' . intval($row['moodle_id']) . '"
-                style="
-                    border-radius:4px;
-                    padding:2px 10px;
-                    display:flex;
-                    align-items:center;
-                    gap:4px;
-                ">
-                <span class="material-icons" style="font-size:16px;">sync</span>
-                Sync
-            </button>
-        ';
+                <button
+                    class="button button-small sync-course"
+                    data-moodle-id="' . intval($row['moodle_id']) . '"
+                    style="
+                        border-radius:4px;
+                        padding:2px 10px;
+                        display:flex;
+                        align-items:center;
+                        gap:4px;
+                    ">
+                    <span class="material-icons" style="font-size:16px;">
+                        sync
+                    </span>
+                    Sync
+                </button>
+            ';
 
-            /* Details */
-            //     $actions[] = '
-            //     <button
-            //         class="button button-small view-activities"
-            //         data-id="' . intval($row['id']) . '"
-            //         style="
-            //             border-radius:4px;
-            //             padding:2px 10px;
-            //             display:flex;
-            //             align-items:center;
-            //             gap:4px;
-            //         ">
-            //         <span class="material-icons" style="font-size:16px;">list_alt</span>
-            //         Details
-            //     </button>
-            // ';
+            /* Product actions */
 
-            /* WooCommerce product actions */
             if ($product_id) {
 
                 $actions[] = '
-                <button
+                    <button
                         class="button button-small view-activities"
                         data-id="' . intval($row['id']) . '"
                         style="
@@ -238,94 +204,65 @@ class CoursesController extends BaseController
                             align-items:center;
                             gap:4px;
                         ">
-                        <span class="material-icons" style="font-size:16px;">list_alt</span>
+                        <span class="material-icons" style="font-size:16px;">
+                            list_alt
+                        </span>
                         Details
                     </button>
-                    ';
+                ';
 
                 $actions[] = '
-                <button
-                    class="button button-small quick-edit-course"
-                    data-product-id="' . $product_id . '"
-                    data-course-id="' . intval($row['id']) . '"
-                    style="
-                        border-radius:4px;
-                        padding:2px 10px;
-                        display:flex;
-                        align-items:center;
-                        gap:4px;
-                    ">
-                    <span class="material-icons" style="font-size:16px;">bolt</span>
-                    Quick Edit
-                </button>
-            ';
-
-                // $actions[] = '
-                //     <a href="' . esc_url(get_edit_post_link($product_id, '')) . '"
-                //        class="button button-small"
-                //        style="
-                //             border-radius:4px;
-                //             padding:2px 10px;
-                //             display:flex;
-                //             align-items:center;
-                //             gap:4px;
-                //        ">
-                //         <span class="material-icons" style="font-size:16px;">edit</span>
-                //         Edit
-                //     </a>
-                // ';
+                    <button
+                        class="button button-small quick-edit-course"
+                        data-product-id="' . $product_id . '"
+                        data-course-id="' . intval($row['id']) . '"
+                        style="
+                            border-radius:4px;
+                            padding:2px 10px;
+                            display:flex;
+                            align-items:center;
+                            gap:4px;
+                        ">
+                        <span class="material-icons" style="font-size:16px;">
+                            bolt
+                        </span>
+                        Quick Edit
+                    </button>
+                ';
             }
 
             $actions[] = '</div>';
 
+            /* ----------------------------------------
+             * RETURN
+             * ------------------------------------- */
+
             return [
                 'sr' => $sr++,
+
                 'image' => $image,
+
                 'fullname' => $product_id
-                    ? '<a href="' . esc_url(get_permalink($product_id)) . '" target="_blank">
-                        ' . esc_html($row['fullname']) . '
-                    </a>'
+                    ? '<a href="' . esc_url(get_permalink($product_id)) . '" target="_blank">'
+                    . esc_html($row['fullname']) .
+                    '</a>'
                     : esc_html($row['fullname']),
-                'shortname' => esc_html($row['shortname']),
-                'visible' => (function () use ($product_id) {
 
-                    if (!$product_id) {
-                        return '<span class="badge badge-light">—</span>';
-                    }
+                'visible' => $status,
 
-                    $product = wc_get_product($product_id);
-
-                    if (!$product) {
-                        return '<span class="badge badge-light">—</span>';
-                    }
-
-                    $status = $product->get_status(); // publish, draft, etc.
-    
-                    $map = [
-                        'publish' => '<span class="badge badge-success">Published</span>',
-                        'draft' => '<span class="badge badge-secondary">Draft</span>',
-                        'pending' => '<span class="badge badge-secondary">Pending</span>',
-                        'private' => '<span class="badge badge-secondary">Private</span>',
-                    ];
-
-                    return $map[$status] ?? '<span class="badge badge-light">' . ucfirst($status) . '</span>';
-
-                })(),
                 'last_synced_at' => esc_html($row['last_synced_at']),
+
                 'price' => $price,
+
                 'actions' => implode(' ', $actions),
             ];
+
         }, $rows);
 
         wp_send_json([
-            'draw' => $draw,
-            'recordsTotal' => $total,
-            'recordsFiltered' => $filtered,
             'data' => $data,
         ]);
     }
-
-
 
     public function activities()
     {
@@ -343,43 +280,24 @@ class CoursesController extends BaseController
         global $wpdb;
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-        $course = $wpdb->get_row(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->prepare("
+        $activitiesSql = "
             SELECT
-                id,
-                moodle_id,
-                wc_product_id,
-                fullname,
-                shortname,
-                displayname,
-                idnumber,
-                visible,
-                format,
-                num_sections,
-                news_items,
-                max_bytes,
-                lang,
-                force_theme,
-                group_mode,
-                group_mode_force,
-                default_grouping_id,
-                enable_completion,
-                completion_notify,
-                show_grades,
-                show_reports,
-                hidden_sections,
-                start_date,
-                end_date,
-                moodle_created_at,
-                moodle_updated_at,
-                last_synced_at,
-                course_image_url,
-                curriculum_json
-            FROM $table
+                id, moodle_id, wc_product_id, fullname, shortname, displayname,
+                idnumber, visible, format, num_sections, news_items, max_bytes,
+                lang, force_theme, group_mode, group_mode_force, default_grouping_id,
+                enable_completion, completion_notify, show_grades, show_reports,
+                hidden_sections, start_date, end_date, moodle_created_at,
+                moodle_updated_at, last_synced_at, course_image_url, curriculum_json
+            FROM {$table}
             WHERE id = %d
-        ", $courseId),
+        ";
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+        $course = $wpdb->get_row(
+            $wpdb->prepare(
+                $activitiesSql, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $courseId
+            ),
             ARRAY_A
         );
 
@@ -488,11 +406,15 @@ class CoursesController extends BaseController
         global $wpdb;
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 
+        $productSql = "SELECT * FROM {$table} WHERE wc_product_id = %d LIMIT 1";
+
         // Find linked course
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
         $course = $wpdb->get_row(
-            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-            $wpdb->prepare("SELECT * FROM $table WHERE wc_product_id = %d LIMIT 1", $product_id),
+            $wpdb->prepare(
+                $productSql, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                $product_id
+            ),
             ARRAY_A
         );
 
@@ -683,14 +605,16 @@ class CoursesController extends BaseController
                 // Default placeholder
                 $course['image'] = COURSETRANSIT_ASSETS_URL . 'images/course-placeholder1.png';
 
+                $imageSql = sprintf(
+                    'SELECT course_image_url FROM %s WHERE moodle_id = %%d LIMIT 1',
+                    esc_sql($table)
+                );
+
                 // Fetch locally stored WP image
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
                 $local_image = $wpdb->get_var(
                     $wpdb->prepare(
-                        "SELECT course_image_url
-                        FROM {$table}
-                        WHERE moodle_id = %d
-                        LIMIT 1",
+                        $imageSql, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
                         $course['id']
                     )
                 );
@@ -703,13 +627,10 @@ class CoursesController extends BaseController
 
             }, $courses);
 
-            // \CourseTransit\Support\Logger::log('FINAL COURSES', $courses);
-
             wp_send_json_success(array_values($courses));
 
         } catch (\Throwable $e) {
             wp_send_json_error($e->getMessage(), 500);
         }
     }
-
 }

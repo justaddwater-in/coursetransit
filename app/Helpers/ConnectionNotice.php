@@ -12,9 +12,16 @@ class ConnectionNotice
 {
     public static function render(): void
     {
-        $route =
+        $route = '';
+
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin route check.
-        isset($_GET['route']) ? sanitize_text_field(wp_unslash($_GET['route'])) : '';
+        if (isset($_GET['route'])) {
+
+            $route = sanitize_text_field(
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin route check.
+                wp_unslash($_GET['route'])
+            );
+        }
 
         // Don't show on settings page
         if ($route === 'settings.index') {
@@ -29,9 +36,9 @@ class ConnectionNotice
 
         Logger::log('Connection Notice Check', [
             'missing_setup' => $missing_setup,
-            'has_url'       => !empty($settings['moodle_url']),
-            'has_token'     => !empty($settings['moodle_token']),
-            'route'         => $route,
+            'has_url' => !empty($settings['moodle_url']),
+            'has_token' => !empty($settings['moodle_token']),
+            'route' => $route,
         ]);
 
         if (!$missing_setup) {
@@ -53,11 +60,11 @@ class ConnectionNotice
                     <div class="ms-3">
 
                         <div class="ct-setup-title">
-                            Complete your Moodle connection setup
+                            <?php echo esc_html__('Complete your Moodle connection setup', 'coursetransit'); ?>
                         </div>
 
                         <div class="ct-setup-text">
-                            Configure your Moodle URL and token to enable course synchronization.
+                            <?php echo esc_html__('Configure your Moodle URL and token to enable course synchronization.', 'coursetransit'); ?>
                         </div>
 
                     </div>
@@ -67,9 +74,9 @@ class ConnectionNotice
                 <div class="me-4">
 
                     <a href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=settings.index')); ?>"
-                       class="button button-primary">
+                        class="button button-primary">
 
-                        Open Settings
+                        <?php echo esc_html__('Open Settings', 'coursetransit'); ?>
 
                     </a>
 

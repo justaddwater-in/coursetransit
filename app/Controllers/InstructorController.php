@@ -82,27 +82,47 @@ class InstructorController extends BaseController
         }
 
         /* -------------------- TOTAL COUNT -------------------- */
-        $total = (int) $wpdb->get_var(
-            "SELECT COUNT(*) FROM " . esc_sql($table)
-        );
+        $total_key = 'ct_instructors_total';
+
+        $total = wp_cache_get($total_key);
+
+        if ($total === false) {
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin table query with object caching.
+            $total = (int) $wpdb->get_var(
+                "SELECT COUNT(*) FROM " . esc_sql($table)
+            );
+
+            wp_cache_set($total_key, $total, '', 300);
+        }
 
         /* -------------------- FILTERED COUNT -------------------- */
         if (!empty($where_values)) {
 
-            $filtered = (int) $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT COUNT(*) FROM " . esc_sql($table) . " 
-                    WHERE name LIKE %s OR email LIKE %s",
-                    $where_values[0],
-                    $where_values[1]
-                )
-            );
+            $filtered_key = 'ct_instructors_filtered_' . md5($search);
+
+            $filtered = wp_cache_get($filtered_key);
+
+            if ($filtered === false) {
+
+                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin table query with object caching.
+                $filtered = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(*) FROM " . esc_sql($table) . "
+                WHERE name LIKE %s OR email LIKE %s",
+                        $where_values[0],
+                        $where_values[1]
+                    )
+                );
+
+                wp_cache_set($filtered_key, $filtered, '', 300);
+            }
 
         } else {
             $filtered = $total;
         }
         /* -------------------- MAIN QUERY -------------------- */
-        $rows_key = 'ct_instructors_rows_' . md5(
+        $rows_key = 'coursetransit_instructors_rows_' . md5(
             $search . $orderColumn . $orderDir . $length . $start
         );
 
@@ -170,7 +190,7 @@ class InstructorController extends BaseController
 
             if (!empty($row['id'])) {
                 $inst_table = $wpdb->prefix . 'coursetransit_instructors';
-                $profile_key = 'ct_instructor_post_' . $row['id'];
+                $profile_key = 'coursetransit_instructor_post_' . $row['id'];
 
                 $post_id = wp_cache_get($profile_key);
 
@@ -377,21 +397,21 @@ class InstructorController extends BaseController
         }
         /* ========= SYNC WITH WP POST ========= */
 
-        $post_key = 'ct_instructor_postid_' . $id;
+        $post_key = 'coursetransit_instructor_postid_' . $id;
 
         $post_id = wp_cache_get($post_key);
 
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-            $post_id = (int) $wpdb->get_var(
-                $wpdb->prepare(
-                    "SELECT post_id FROM " . esc_sql($table) . " WHERE id = %d",
-                    $id
-                )
-            );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+        $post_id = (int) $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT post_id FROM " . esc_sql($table) . " WHERE id = %d",
+                $id
+            )
+        );
 
         /* Fallback — find existing post by slug (prevents duplicates forever) */
         if (!$post_id) {
-            $existing = get_page_by_path($slug, OBJECT, 'coursetransit_instructor');
+            $existing = get_page_by_path($slug, OBJECT, 'ctransit_instructor');
             if ($existing) {
                 $post_id = $existing->ID;
 
@@ -409,7 +429,7 @@ class InstructorController extends BaseController
             'post_name' => $slug,
             'post_content' => wp_kses_post($bio),
             'post_status' => $data['is_public'] ? 'publish' : 'draft',
-            'post_type' => 'ct_instructor',
+            'post_type' => 'ctransit_instructor',
         ];
 
         if ($post_id) {
@@ -435,7 +455,7 @@ class InstructorController extends BaseController
         update_post_meta($post_id, '_coursetransit_focus', $focus);
         update_post_meta($post_id, '_coursetransit_expertise', $expertise);
 
-        wp_cache_delete('ct_instructors_total');
+        wp_cache_delete('coursetransit_instructors_total');
 
         wp_send_json_success(['message' => 'Instructor saved']);
     }
@@ -460,7 +480,7 @@ class InstructorController extends BaseController
             wp_send_json_error(['message' => 'Invalid ID'], 400);
 
         // Get linked WP post
-        $post_key = 'ct_instructor_postid_' . $id;
+        $post_key = 'coursetransit_instructor_postid_' . $id;
 
         $post_id = wp_cache_get($post_key);
 
@@ -484,7 +504,7 @@ class InstructorController extends BaseController
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
         $wpdb->delete($table, ['id' => $id]);
 
-        wp_cache_delete('ct_instructors_total');
+        wp_cache_delete('coursetransit_instructors_total');
         wp_send_json_success(['message' => 'Instructor deleted']);
     }
 
@@ -541,13 +561,23 @@ class InstructorController extends BaseController
             wp_send_json_error(['message' => 'Invalid ID'], 400);
         }
 
-        $key = 'ct_instructor_' . $id;
+        $key = 'coursetransit_instructor_' . $id;
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM " . esc_sql($table) . " WHERE id = %d", $id),
-            ARRAY_A
-        );
+        $row = wp_cache_get($key);
+
+        if ($row === false) {
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin table query with object caching.
+            $row = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT * FROM " . esc_sql($table) . " WHERE id = %d",
+                    $id
+                ),
+                ARRAY_A
+            );
+
+            wp_cache_set($key, $row, '', 300);
+        }
 
         if (!$row) {
             wp_send_json_error(['message' => 'Instructor not found'], 404);
@@ -578,13 +608,23 @@ class InstructorController extends BaseController
             wp_send_json_error(['message' => 'Invalid instructor'], 400);
         }
 
-        $key = 'ct_instructor_courses_' . $id;
+        $key = 'coursetransit_instructor_courses_' . $id;
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-        $instructor = $wpdb->get_row(
-            $wpdb->prepare("SELECT courses FROM " . esc_sql($insTable) . " WHERE id = %d", $id),
-            ARRAY_A
-        );
+        $instructor = wp_cache_get($key);
+
+        if ($instructor === false) {
+
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom plugin table query with object caching.
+            $instructor = $wpdb->get_row(
+                $wpdb->prepare(
+                    "SELECT courses FROM " . esc_sql($insTable) . " WHERE id = %d",
+                    $id
+                ),
+                ARRAY_A
+            );
+
+            wp_cache_set($key, $instructor, '', 300);
+        }
 
         if (!$instructor) {
             wp_send_json_error(['message' => 'Instructor not found'], 404);
