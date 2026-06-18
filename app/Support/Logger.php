@@ -4,79 +4,55 @@ namespace CourseTransit\Support;
 
 class Logger
 {
-    public static function log(string $title, $data = null): void
-    {
-        // Optional debug mode
+    protected const LOG_RETENTION_DAYS = 7;
+
+    protected const LEVEL_INFO = 'info';
+    protected const LEVEL_WARNING = 'warning';
+    protected const LEVEL_ERROR = 'error';
+    protected const LEVEL_DEBUG = 'debug';
+
+    protected const STATUS_SUCCESS = 'success';
+    protected const STATUS_WARNING = 'warning';
+    protected const STATUS_FAILED = 'failed';
+    protected const STATUS_DEBUG = 'debug';
+
+    /**
+     * Generic logger.
+     */
+    public static function log(
+        string $title,
+        $context = null,
+        string $level = self::LEVEL_INFO,
+        string $status = self::STATUS_SUCCESS
+    ): void {
+
+        // Debug disabled.
+        $settings = get_option(
+            'coursetransit_log_settings',
+            []
+        );
+
         if (
-            !defined('COURSETRANSIT_DEBUG') ||
-            COURSETRANSIT_DEBUG !== true
+            empty($settings['enabled']) ||
+            (int) $settings['enabled'] !== 1
         ) {
             return;
         }
 
         global $wpdb;
 
-        $table = esc_sql($wpdb->prefix . 'coursetransit_logs');
+        $table = $wpdb->prefix . 'coursetransit_logs';
 
-        // Detect source/module automatically
-        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
-        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
-        $source = isset($trace[1]['class'])
-            ? $trace[1]['class']
-            : 'system';
+        $source = self::detectSource();
 
-        // Sanitize sensitive data
-        $data = self::sanitizeContext($data);
+        $context = self::prepareContext($context);
 
-        // Encode context
-        $context = null;
-
-        if ($data !== null) {
-
-            if (is_array($data) || is_object($data)) {
-
-                $context = wp_json_encode(
-                    $data,
-                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
-                );
-
-            } else {
-
-                $context = (string) $data;
-            }
-        }
-
-        // Request info
-        $request_url = '';
-
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $request_url = sanitize_text_field(
-                wp_unslash($_SERVER['REQUEST_URI'])
-            );
-        }
-
-        $method = '';
-
-        if (isset($_SERVER['REQUEST_METHOD'])) {
-            $method = sanitize_text_field(
-                wp_unslash($_SERVER['REQUEST_METHOD'])
-            );
-        }
-
-        $ip_address = '';
-
-        if (isset($_SERVER['REMOTE_ADDR'])) {
-            $ip_address = sanitize_text_field(
-                wp_unslash($_SERVER['REMOTE_ADDR'])
-            );
-        }
-
-        // Insert log
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
         $wpdb->insert(
             $table,
             [
-                'level' => 'info',
+                'level' => sanitize_key($level),
+
                 'source' => $source,
                 'action' => 'log',
 
@@ -84,13 +60,13 @@ class Logger
                 'message' => null,
                 'context' => $context,
 
-                'status' => 'success',
+                'status' => sanitize_key($status),
 
                 'user_id' => get_current_user_id(),
 
-                'ip_address' => $ip_address,
-                'request_url' => $request_url,
-                'method' => $method,
+                'ip_address' => self::server('REMOTE_ADDR'),
+                'request_url' => self::server('REQUEST_URI'),
+                'method' => self::server('REQUEST_METHOD'),
 
                 'trace' => null,
 
@@ -99,8 +75,6 @@ class Logger
             [
                 '%s',
 
-                '%s',
-                '%s',
                 '%s',
                 '%s',
 
@@ -119,31 +93,127 @@ class Logger
                 '%s',
 
                 '%s',
-                '%s',
             ]
         );
 
-        // Prune old logs (7 days)
-        if (wp_rand(1, 20) === 1) {
-
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-            $wpdb->query(
-                $wpdb->prepare(
-                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is controlled via $wpdb->prefix.
-                    "DELETE FROM {$table}
-                     WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-                    7
-                )
-            );
-        }
+        self::maybePruneLogs($table);
     }
 
-    protected static function sanitizeContext($data)
+    /**
+     * Success log.
+     */
+    public static function success(
+        string $title,
+        $context = null
+    ): void {
+
+        self::log(
+            $title,
+            $context,
+            self::LEVEL_INFO,
+            self::STATUS_SUCCESS
+        );
+    }
+
+    /**
+     * Warning log.
+     */
+    public static function warning(
+        string $title,
+        $context = null
+    ): void {
+
+        self::log(
+            $title,
+            $context,
+            self::LEVEL_WARNING,
+            self::STATUS_WARNING
+        );
+    }
+
+    /**
+     * Error log.
+     */
+    public static function error(
+        string $title,
+        $context = null
+    ): void {
+
+        self::log(
+            $title,
+            $context,
+            self::LEVEL_ERROR,
+            self::STATUS_FAILED
+        );
+    }
+
+    /**
+     * Debug log.
+     */
+    public static function debug(
+        string $title,
+        $context = null
+    ): void {
+
+        self::log(
+            $title,
+            $context,
+            self::LEVEL_DEBUG,
+            self::STATUS_DEBUG
+        );
+    }
+
+    /**
+     * Detect log source automatically.
+     */
+    protected static function detectSource(): string
     {
-        if (!is_array($data)) {
-            return $data;
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+
+        return isset($trace[1]['class'])
+            ? sanitize_text_field($trace[1]['class'])
+            : 'system';
+    }
+
+    /**
+     * Prepare context payload.
+     */
+    protected static function prepareContext($context): ?string
+    {
+        if ($context === null) {
+            return null;
         }
 
+        $context = self::sanitizeContext($context);
+
+        if (
+            is_array($context) ||
+            is_object($context)
+        ) {
+
+            $encoded = wp_json_encode(
+                $context,
+                JSON_UNESCAPED_SLASHES |
+                JSON_UNESCAPED_UNICODE
+            );
+
+            if (!$encoded) {
+                return null;
+            }
+
+            // Prevent huge DB entries.
+            return substr($encoded, 0, 10000);
+        }
+
+        return substr((string) $context, 0, 10000);
+    }
+
+    /**
+     * Recursively sanitize sensitive data.
+     */
+    protected static function sanitizeContext($data)
+    {
         $sensitive_keys = [
             'password',
             'pass',
@@ -153,27 +223,37 @@ class Logger
             'authorization',
             'cookie',
             'api_key',
-            'userprivateaccesskey',
+            'apikey',
             'access_token',
             'refresh_token',
             'auth',
             'auth_token',
-            'apikey',
             'bearer',
             'sesskey',
+            'userprivateaccesskey',
         ];
+
+        if (!is_array($data)) {
+            return $data;
+        }
 
         foreach ($data as $key => $value) {
 
+            $normalized_key = strtolower(
+                (string) $key
+            );
+
             if (
                 in_array(
-                    strtolower((string) $key),
+                    $normalized_key,
                     $sensitive_keys,
                     true
                 )
             ) {
 
                 $data[$key] = '[REDACTED]';
+
+                continue;
             }
 
             if (is_array($value)) {
@@ -184,24 +264,74 @@ class Logger
         return $data;
     }
 
-    protected static function detectModule(string $source): string
-    {
+    /**
+     * Get sanitized server value.
+     */
+    protected static function server(
+        string $key
+    ): string {
+
+        if (!isset($_SERVER[$key])) {
+            return '';
+        }
+
+        return sanitize_text_field(
+            wp_unslash($_SERVER[$key])
+        );
+    }
+
+    /**
+     * Randomly prune old logs.
+     */
+    protected static function maybePruneLogs(
+        string $table
+    ): void {
+
+        if (wp_rand(1, 20) !== 1) {
+            return;
+        }
+
+        global $wpdb;
+
+        $table = esc_sql($table);
+
+        $sql = "
+            DELETE FROM {$table}
+            WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)
+        ";
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
+        $wpdb->query(
+            $wpdb->prepare(
+                $sql, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+                self::LOG_RETENTION_DAYS
+            )
+        );
+    }
+
+    /**
+     * Detect logical module from source.
+     */
+    protected static function detectModule(
+        string $source
+    ): string {
+
         $source = strtolower($source);
 
-        if (strpos($source, 'sync') !== false) {
-            return 'sync';
-        }
+        $modules = [
+            'sync' => 'sync',
+            'sso' => 'sso',
+            'moodle' => 'moodle',
+            'api' => 'api',
+        ];
 
-        if (strpos($source, 'sso') !== false) {
-            return 'sso';
-        }
+        foreach ($modules as $needle => $module) {
 
-        if (strpos($source, 'moodle') !== false) {
-            return 'moodle';
-        }
-
-        if (strpos($source, 'api') !== false) {
-            return 'api';
+            if (
+                strpos($source, $needle) !== false
+            ) {
+                return $module;
+            }
         }
 
         return 'general';

@@ -16,7 +16,6 @@ if (!defined('ABSPATH')) {
     </div>
     <div class="col-6 d-flex align-items-center justify-content-sm-end justify-content-center">
         <div class="d-flex gap-2" role="group" aria-label="Page actions">
-
             <button type="button" id="coursetransit-sync-courses" class="button button-secondary">
                 Sync Courses
             </button>
@@ -36,10 +35,8 @@ if (!defined('ABSPATH')) {
                             <th>#</th>
                             <th>Image</th>
                             <th>Course Name</th>
-                            <!-- <th>Shortname</th> -->
-                            <!-- <th>Status</th> -->
+                            <th>Enrolled</th>
                             <th>Status</th>
-                            <th>Last Synced</th>
                             <th>Price</th>
                             <th>Actions</th>
                         </tr>
@@ -97,19 +94,78 @@ if (!defined('ABSPATH')) {
                     </div>
 
                     <!-- META GRID -->
-                    <div class="ct-font"
-                        style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px;font-size:14px;">
-                        <div><strong>Moodle Course:</strong> <span id="course-moodle-id"></span></div>
-                        <div><strong>Sections:</strong> <span id="course-sections"></span></div>
-                        <div><strong>Language:</strong> <span id="course-lang"></span></div>
-                        <div><strong>Grades:</strong> <span id="course-grades"></span></div>
-                        <div><strong>Start:</strong> <span id="course-start"></span></div>
-                        <div><strong>End:</strong> <span id="course-end"></span></div>
+                    <div class="ct-font" style="
+                        display:grid;
+                        grid-template-columns:repeat(2,1fr);
+                        gap:12px;
+                        margin-bottom:24px;
+                        font-size:14px;
+                    ">
+
+                        <div>
+                            <strong>Moodle Course:</strong>
+                            <span id="course-moodle-id"></span>
+                        </div>
+
+                        <div>
+                            <strong>Status:</strong>
+                            <span id="course-product-status"></span>
+                        </div>
+
+                        <div>
+                            <strong>Enrolled:</strong>
+                            <span id="course-enrolled"></span>
+                        </div>
+
+                        <div>
+                            <strong>Activities:</strong>
+                            <span id="course-activities-count"></span>
+                        </div>
+
+                        <div>
+                            <strong>Sections:</strong>
+                            <span id="course-sections"></span>
+                        </div>
+
+                        <div>
+                            <strong>Language:</strong>
+                            <span id="course-lang"></span>
+                        </div>
+
+                        <div>
+                            <strong>Price:</strong>
+                            <span id="course-price"></span>
+                        </div>
+
+                        <div>
+                            <strong>Enrollment:</strong>
+                            <span id="course-enrollment-period"></span>
+                        </div>
+
+                        <div>
+                            <strong>Start:</strong>
+                            <span id="course-start"></span>
+                        </div>
+
+                        <div>
+                            <strong>End:</strong>
+                            <span id="course-end"></span>
+                        </div>
+
+                        <div>
+                            <strong>Grades:</strong>
+                            <span id="course-grades"></span>
+                        </div>
+
+                        <div style="grid-column:1 / -1;">
+                            <strong>Categories:</strong>
+                            <span id="course-categories"></span>
+                        </div>
                     </div>
 
                     <!-- CURRICULUM -->
                     <div style="margin-bottom:16px;">
-                        <div style="font-size:12px;color:#6b7280;margin-bottom:8px;">Curriculum</div>
+                        <div style="font-size:16px;color:#6b7280;margin-bottom:8px;">Curriculum</div>
 
                         <div class="accordion" id="coursetransit-curriculum-accordion"></div>
 
@@ -198,7 +254,65 @@ if (!defined('ABSPATH')) {
                             <label style="font-size:12px;color:#6b7280;">Sale Price</label>
                             <input type="number" id="qe-sale-price" class="form-control">
                         </div>
+                        <!-- Enrollment Period -->
+                        <div>
 
+                            <label style="font-size:12px;color:#6b7280;">
+                                Enrollment Period
+                            </label>
+
+                            <select id="qe-enrollment-period" class="form-control">
+
+                                <option value="">
+                                    — Select Enrollment Period —
+                                </option>
+
+                                <option value="0">
+                                    Lifetime Access
+                                </option>
+
+                                <option value="30">
+                                    30 Days
+                                </option>
+
+                                <option value="60">
+                                    60 Days
+                                </option>
+
+                                <option value="90">
+                                    90 Days
+                                </option>
+
+                                <option value="180">
+                                    180 Days
+                                </option>
+
+                                <option value="365">
+                                    365 Days
+                                </option>
+
+                                <option value="custom">
+                                    Custom
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div id="qe-custom-enrollment-wrap" style="display:none;">
+
+                            <label style="font-size:12px;color:#6b7280;">
+                                Custom Enrollment Days
+                            </label>
+
+                            <input type="number" min="1" id="qe-custom-enrollment" class="form-control"
+                                placeholder="Enter number of days">
+
+                            <small style="color:#6b7280;">
+                                Example: 730 = 2 years
+                            </small>
+
+                        </div>
                         <!-- SKU -->
                         <div>
                             <label style="font-size:12px;color:#6b7280;">SKU</label>
@@ -257,4 +371,3 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </div>
-

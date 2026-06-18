@@ -300,46 +300,6 @@ add_action('admin_init', function () {
     }
 });
 
-
-add_action('after_plugin_row_' . plugin_basename(COURSETRANSIT_FILE), function () {
-    
-        if (class_exists('WooCommerce')) {
-            return;
-        }
-
-        $woo_file = WP_PLUGIN_DIR . '/woocommerce/woocommerce.php';
-
-        if (file_exists($woo_file)) {
-
-            // Installed but NOT active
-            $action_url = wp_nonce_url(
-                admin_url('plugins.php?action=activate&plugin=woocommerce/woocommerce.php'),
-                'activate-plugin_woocommerce/woocommerce.php'
-            );
-
-            $action_text = esc_html__('Activate WooCommerce', 'coursetransit');
-
-        } else {
-
-            // Not installed
-            $action_url = admin_url('plugin-install.php?s=woocommerce&tab=search&type=term');
-            $action_text = esc_html__('Install WooCommerce', 'coursetransit');
-        }
-
-        echo '<tr class="plugin-update-tr">
-        <td colspan="4" class="plugin-update colspanchange">
-            <div class="update-message notice inline notice-error notice-alt">
-                <p>
-                    <strong>CourseTransit:</strong> WooCommerce must be installed and activated.
-                    <a href="' . esc_url($action_url) . '">' . esc_html($action_text) . '</a>
-                </p>
-            </div>
-        </td>
-    </tr>';
-    }
-);
-
-
 if (!class_exists('WooCommerce')) {
     return;
 }

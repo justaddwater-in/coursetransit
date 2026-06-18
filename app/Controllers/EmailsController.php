@@ -14,7 +14,48 @@ class EmailsController extends BaseController
 
         $template = $templates[$default_key] ?? [
             'subject' => 'You are enrolled in {course_name}',
-            'body' => '<p>Hello {first_name},</p><p>You are enrolled in {course_name}.</p>'
+            'body' => '<p>Hi {first_name},</p>
+
+            <p>
+                We’re excited to let you know that you’ve been successfully enrolled in:
+            </p>
+
+            <p style="font-size: 16px;">
+                <strong>{course_name}</strong>
+            </p>
+
+            <p>
+                You can start learning immediately by logging into your dashboard here:
+            </p>
+
+            <p>
+                <a href="{login_url}" target="_blank" rel="noopener">
+                    Access your course
+                </a>
+            </p>
+
+            <hr />
+
+            <strong>Your account details:</strong>
+
+            <ul>
+                <li>Email: {email}</li>
+                <li>Password: {password}</li>
+            </ul>
+
+            <p>
+                If you have any questions, just reply to this email — we’re happy to help.
+            </p>
+
+            <p>
+                Happy learning,<br>
+                <strong>The {site_name} Team</strong>
+            </p>
+
+            <p style="font-size:12px;color:#6b7280;">
+                If the button above doesn’t work, copy and paste this link into your browser:<br>
+                {login_url}
+            </p>'
         ];
 
         $this->render('emails/index', [

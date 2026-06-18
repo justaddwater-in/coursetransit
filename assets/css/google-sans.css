@@ -1,25 +1,8 @@
-@font-face {
-    font-family: 'Google Sans';
-    src: url('../fonts/google-sans/GoogleSans-Regular.woff2') format('woff2');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 
-@font-face {
-    font-family: 'Google Sans';
-    src: url('../fonts/google-sans/GoogleSans-Medium.woff2') format('woff2');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Google Sans';
-    src: url('../fonts/google-sans/GoogleSans-Bold.woff2') format('woff2');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
+body.toplevel_page_coursetransit,
+body[class*="coursetransit"] {
+    font-family: "Google Sans", sans-serif;
 }
 
 /* Apply ONLY to CourseTransit UI */

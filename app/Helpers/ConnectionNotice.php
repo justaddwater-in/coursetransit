@@ -34,12 +34,19 @@ class ConnectionNotice
             empty($settings['moodle_url']) ||
             empty($settings['moodle_token']);
 
-        Logger::log('Connection Notice Check', [
-            'missing_setup' => $missing_setup,
-            'has_url' => !empty($settings['moodle_url']),
-            'has_token' => !empty($settings['moodle_token']),
-            'route' => $route,
-        ]);
+        if ($missing_setup) {
+
+            Logger::warning(
+                'Moodle connection setup incomplete',
+                [
+                    'module' => 'settings',
+                    'route' => $route,
+                    'has_moodle_url' => !empty($settings['moodle_url']),
+                    'has_moodle_token' => !empty($settings['moodle_token']),
+                ]
+            );
+
+        }
 
         if (!$missing_setup) {
             return;

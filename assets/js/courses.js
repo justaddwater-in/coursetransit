@@ -235,11 +235,12 @@ jQuery(function ($) {
             { data: 'image', orderable: false },  // disable for Image
             { data: 'fullname' },
             // { data: 'shortname' },
+            { data: 'enrolled_count', orderable: false },
             { data: 'visible' },
-            {
-                data: 'last_synced_at',
-                className: 'dt-left'
-            },
+            // {
+            //     data: 'last_synced_at',
+            //     className: 'dt-left'
+            // },
             { data: 'price', orderable: false },
             {
                 data: 'actions',
@@ -322,6 +323,18 @@ jQuery(function ($) {
             $('#course-maxbytes').text(c.max_bytes);
             $('#course-completion').text(c.completion);
             $('#course-grades').text(c.show_grades);
+            $('#course-product-status').text(c.product_status || '—');
+            $('#course-enrolled').text(c.enrolled_count || 0);
+            $('#course-activities-count').text(c.activity_count || 0);
+            $('#course-price').html(c.price || '—');
+            $('#course-enrollment-period').text(
+                c.enrollment_period || '—'
+            );
+            $('#course-categories').text(
+                Array.isArray(c.categories)
+                    ? c.categories.join(', ')
+                    : '—'
+            );
             $('#course-start').text(c.start_date);
             $('#course-end').text(c.end_date);
 
@@ -545,6 +558,42 @@ jQuery(function ($) {
             // status
             $('#qe-status').val(p.status || 'publish');
 
+            // enrollment period
+            const enrollmentPeriod = p.enrollment_period;
+
+            const presetValues = ['0', '30', '60', '90', '180', '365'];
+
+            if (
+                enrollmentPeriod === '' ||
+                enrollmentPeriod === null ||
+                typeof enrollmentPeriod === 'undefined'
+            ) {
+
+                $('#qe-enrollment-period').val('');
+
+                $('#qe-custom-enrollment-wrap').hide();
+
+                $('#qe-custom-enrollment').val('');
+
+            } else if (presetValues.includes(String(enrollmentPeriod))) {
+
+                $('#qe-enrollment-period')
+                    .val(String(enrollmentPeriod));
+
+                $('#qe-custom-enrollment-wrap').hide();
+
+                $('#qe-custom-enrollment').val('');
+
+            } else {
+
+                $('#qe-enrollment-period').val('custom');
+
+                $('#qe-custom-enrollment-wrap').show();
+
+                $('#qe-custom-enrollment')
+                    .val(enrollmentPeriod);
+            }
+
             // header
             $('#qe_course-name').text(p.course_name || p.name || 'Course');
             $('#qe_course-shortname').text(p.course_shortname || '');
@@ -602,6 +651,9 @@ jQuery(function ($) {
 
             status: $('#qe-status').val(),
 
+            enrollment_period: $('#qe-enrollment-period').val(),
+            custom_enrollment_period: $('#qe-custom-enrollment').val(),
+
             _ajax_nonce: CourseTransitAjax.nonce
         }).done(res => {
 
@@ -628,7 +680,20 @@ jQuery(function ($) {
         $('#coursetransitQuickEditModal').modal('hide');
     });
 
+    $(document).on('change', '#qe-enrollment-period', function () {
+
+        const value = $(this).val();
+
+        if (value === 'custom') {
+            $('#qe-custom-enrollment-wrap').slideDown(150);
+        } else {
+            $('#qe-custom-enrollment-wrap').slideUp(150);
+        }
+    });
+
+    
 });
+
 
 
 
