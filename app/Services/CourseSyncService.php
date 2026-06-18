@@ -119,9 +119,13 @@ class CourseSyncService
         } catch (Exception $e) {
 
             // API failure vs real delete (important distinction)
-            \CourseTransit\Support\Logger::log(
-                'MOODLE API ERROR DURING FETCH',
-                'moodle_id=' . $moodleId . ' | error=' . $e->getMessage()
+            Logger::error(
+                'Failed to fetch Moodle course',
+                [
+                    'module' => 'course_sync',
+                    'moodle_course_id' => $moodleId,
+                    'error_message' => $e->getMessage(),
+                ]
             );
 
             throw $e; // don’t mark missing on API failure
@@ -130,20 +134,18 @@ class CourseSyncService
         // DELETE / NOT FOUND CASE
         if (!$course || empty($course['id'])) {
 
-            \CourseTransit\Support\Logger::log(
-                'COURSE NOT FOUND IN MOODLE → MARKING MISSING',
-                'moodle_id=' . $moodleId
+            Logger::warning(
+                'Course no longer exists in Moodle',
+                [
+                    'module' => 'course_sync',
+                    'moodle_course_id' => $moodleId,
+                    'action' => 'mark_missing',
+                ]
             );
 
             self::markOneMissing($moodleId);
             return; // stop execution
         }
-
-        // NORMAL FLOW
-        \CourseTransit\Support\Logger::log(
-            'COURSE FOUND → PROCESSING',
-            'moodle_id=' . $moodleId
-        );
 
         self::processCourse($client, $course);
     }
@@ -157,6 +159,29 @@ class CourseSyncService
         global $wpdb;
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+        $settings = get_option('coursetransit_settings', []);
+
+        // Product content sync mode: all, new, disabled
+        $product_content_sync = sanitize_text_field(
+            $settings['product_content_sync'] ?? 'all'
+        );
+
+        // Image sync mode: all, new, keep_existing, disabled
+        $image_sync_mode = sanitize_text_field(
+            $settings['image_sync'] ?? 'all'
+        );
+
+        // Curriculum sync mode: all, new, disabled
+        $sync_curriculum = sanitize_text_field(
+            $settings['sync_curriculum'] ?? 'all'
+        );
+
+        // Category sync mode: all, new, disabled
+        $category_sync = sanitize_text_field(
+            $settings['category_sync'] ?? 'all'
+        );
+
         /* ===============================
          * 1. CREATE / UPDATE PRODUCT
          * =============================== */
@@ -164,7 +189,6 @@ class CourseSyncService
         // Try to find existing product by DB record
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $product_id = $wpdb->get_var(
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->prepare(
                 "SELECT wc_product_id FROM " . esc_sql($table) . " WHERE moodle_id = %d",
                 $course['id']
@@ -172,7 +196,8 @@ class CourseSyncService
         );
 
         if (!$product_id) {
-            // Fallback: try to find by meta (handles cases where DB got out of sync)
+
+            // Fallback: try to find by meta
             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value
             $existing = get_posts([
                 'post_type' => 'product',
@@ -192,20 +217,30 @@ class CourseSyncService
             }
         }
 
+        $product_already_exists = !empty($product_id);
+
         if (!$product_id) {
+
+            $product_status = sanitize_text_field(
+                $settings['product_status'] ?? 'publish'
+            );
+
             $product = new WC_Product_Simple();
+
             $product->set_name($course['fullname']);
-            $product->set_status('publish');
+            $product->set_status($product_status);
+
             $product->set_virtual(true);
             $product->set_downloadable(true);
             $product->set_catalog_visibility('hidden');
+
             $product_id = $product->save();
         }
 
-        /* ==== NEW: Auto-restore product if previously missing ==== */
+        /* ==== AUTO RESTORE ==== */
+
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $prev_status = $wpdb->get_var(
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->prepare(
                 "SELECT last_sync_status FROM " . esc_sql($table) . " WHERE moodle_id = %d",
                 $course['id']
@@ -213,14 +248,15 @@ class CourseSyncService
         );
 
         if ($prev_status === 'missing') {
+
             $product = wc_get_product($product_id);
+
             if ($product) {
                 $product->set_status('publish');
                 $product->set_catalog_visibility('hidden');
                 $product->save();
             }
 
-            // 🔹 Restore DB visibility also
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
             $wpdb->update(
                 $table,
@@ -228,24 +264,30 @@ class CourseSyncService
                 ['moodle_id' => $course['id']]
             );
 
-            Logger::log('COURSE RESTORED FROM MISSING', [
-                'moodle_id' => $course['id'],
-            ]);
+            Logger::success(
+                'Previously missing course restored',
+                [
+                    'module' => 'course_sync',
+                    'moodle_course_id' => $course['id'],
+                    'product_id' => $product_id,
+                ]
+            );
         }
 
-        /* ==== NEW: Sync Moodle visibility with Woo product ==== */
+        /* ==== VISIBILITY SYNC ==== */
+
         if (isset($course['visible'])) {
 
             $product = wc_get_product($product_id);
 
             if ((int) $course['visible'] === 0) {
-                // Moodle course hidden → hide Woo product
+
                 if ($product) {
                     $product->set_status('draft');
                     $product->set_catalog_visibility('visible');
                     $product->save();
                 }
-                // Update DB visibility also
+
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->update(
                     $table,
@@ -253,22 +295,32 @@ class CourseSyncService
                     ['moodle_id' => $course['id']]
                 );
 
-                Logger::log('COURSE HIDDEN (Moodle visibility = 0)', [
-                    'moodle_id' => $course['id'],
-                ]);
+                Logger::warning(
+                    'Course hidden due to Moodle visibility',
+                    [
+                        'module' => 'course_sync',
+                        'moodle_course_id' => $course['id'],
+                        'visibility' => 0,
+                        'product_id' => $product_id,
+                    ]
+                );
             }
 
             if ((int) $course['visible'] === 1) {
-                // Moodle course visible → ensure Woo product active
+
                 if ($product && $product->get_status() === 'draft') {
+
                     $product->set_status('publish');
+
                     $product->set_catalog_visibility(
-                        (int) ($course['visible'] ?? 1) === 1 ? 'visible' : 'hidden'
+                        (int) ($course['visible'] ?? 1) === 1
+                        ? 'visible'
+                        : 'hidden'
                     );
+
                     $product->save();
                 }
 
-                // Update DB visibility also
                 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
                 $wpdb->update(
                     $table,
@@ -278,7 +330,11 @@ class CourseSyncService
             }
         }
 
-        update_post_meta($product_id, '_coursetransit_moodle_id', $course['id']);
+        update_post_meta(
+            $product_id,
+            '_coursetransit_moodle_id',
+            $course['id']
+        );
 
         /* ===============================
          * 2. PRODUCT CONTENT
@@ -286,12 +342,26 @@ class CourseSyncService
 
         $post_content = $course['summary'] ?? '';
 
-        wp_update_post([
-            'ID' => $product_id,
-            'post_title' => wp_strip_all_tags($course['fullname'] ?? 'Untitled Course'),
-            'post_content' => wp_kses_post($post_content),
-            'post_excerpt' => wp_trim_words(wp_strip_all_tags($post_content), 35),
-        ]);
+        if (
+            $product_content_sync !== 'disabled' &&
+            (
+                !$product_already_exists ||
+                $product_content_sync === 'all'
+            )
+        ) {
+
+            wp_update_post([
+                'ID' => $product_id,
+                'post_title' => wp_strip_all_tags(
+                    $course['fullname'] ?? 'Untitled Course'
+                ),
+                'post_content' => wp_kses_post($post_content),
+                'post_excerpt' => wp_trim_words(
+                    wp_strip_all_tags($post_content),
+                    35
+                ),
+            ]);
+        }
 
         /* ===============================
          * 3. IMAGE
@@ -300,6 +370,42 @@ class CourseSyncService
         $wpImageUrl = null;
 
         $courseDetails = $client->fetchCourseById($course['id']);
+
+        /* ===============================
+         * COURSE CATEGORY SYNC
+         * =============================== */
+
+        $moodle_category = trim((string) (
+            $course['categoryname']
+            ?? $courseDetails['categoryname']
+            ?? ''
+        ));
+
+        if ($moodle_category !== '') {
+
+            $term = term_exists($moodle_category, 'product_cat');
+
+            if (!$term) {
+
+                $term = wp_insert_term(
+                    $moodle_category,
+                    'product_cat'
+                );
+            }
+
+            if (!is_wp_error($term)) {
+
+                $term_id = is_array($term)
+                    ? (int) $term['term_id']
+                    : (int) $term;
+
+                wp_set_object_terms(
+                    $product_id,
+                    [$term_id],
+                    'product_cat'
+                );
+            }
+        }
 
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/media.php';
@@ -312,7 +418,9 @@ class CourseSyncService
         }
 
         if (!$imageUrl && !empty($courseDetails['overviewfiles'])) {
+
             foreach ($courseDetails['overviewfiles'] as $file) {
+
                 if (
                     !empty($file['mimetype']) &&
                     str_starts_with($file['mimetype'], 'image/') &&
@@ -324,15 +432,36 @@ class CourseSyncService
             }
         }
 
+        /* ===============================
+         * IMAGE SYNC RULES
+         * =============================== */
+
+        if ($image_sync_mode === 'disabled') {
+            $imageUrl = null;
+        }
+
+        if (
+            $image_sync_mode === 'new' &&
+            $product_already_exists
+        ) {
+            $imageUrl = null;
+        }
+
+        if (
+            $image_sync_mode === 'keep_existing' &&
+            get_post_thumbnail_id($product_id)
+        ) {
+            $imageUrl = null;
+        }
+
         if ($imageUrl) {
 
-            // Delete old thumbnail
             $old_thumbnail_id = get_post_thumbnail_id($product_id);
+
             if ($old_thumbnail_id) {
                 wp_delete_attachment($old_thumbnail_id, true);
             }
 
-            // Upload new image
             $attachment_id = media_sideload_image(
                 $imageUrl,
                 $product_id,
@@ -341,9 +470,49 @@ class CourseSyncService
             );
 
             if (!is_wp_error($attachment_id)) {
-                set_post_thumbnail($product_id, $attachment_id);
-                $wpImageUrl = wp_get_attachment_url($attachment_id);
+
+                set_post_thumbnail(
+                    $product_id,
+                    $attachment_id
+                );
+
+                $wpImageUrl = wp_get_attachment_url(
+                    $attachment_id
+                );
             }
+        }
+
+        /* ===============================
+         * CURRICULUM SYNC RULES
+         * =============================== */
+
+        if (
+            $sync_curriculum === 'disabled' ||
+            (
+                $sync_curriculum === 'new' &&
+                $product_already_exists
+            )
+        ) {
+
+            if ($sync_curriculum === 'disabled') {
+
+                Logger::debug(
+                    'Curriculum synchronization disabled',
+                    [
+                        'module' => 'course_sync',
+                        'moodle_course_id' => $course['id'],
+                    ]
+                );
+
+            }
+
+            return self::upsert(
+                $course,
+                (int) $product_id,
+                $wpImageUrl,
+                [],
+                []
+            );
         }
 
         /* ===============================
@@ -353,8 +522,11 @@ class CourseSyncService
         $contents = $client->fetchCourseContents($course['id']);
 
         $activities = [];
+
         foreach ($contents as $section) {
+
             foreach ($section['modules'] ?? [] as $module) {
+
                 $activities[] = [
                     'name' => $module['name'] ?? '',
                     'type' => $module['modname'] ?? '',
@@ -366,8 +538,10 @@ class CourseSyncService
         $curriculum = [];
 
         foreach ($contents as $section) {
-            if (empty($section['modules']))
+
+            if (empty($section['modules'])) {
                 continue;
+            }
 
             $sectionBlock = [
                 'title' => $section['name'] ?? 'Untitled section',
@@ -375,6 +549,7 @@ class CourseSyncService
             ];
 
             foreach ($section['modules'] as $module) {
+
                 $sectionBlock['items'][] = [
                     'title' => $module['name'] ?? '',
                     'type' => $module['modname'] ?? '',
@@ -408,20 +583,26 @@ class CourseSyncService
 
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 
+        $settings = get_option('coursetransit_settings', []);
+
+        $missing_course_action = sanitize_text_field(
+            $settings['missing_course_action'] ?? 'draft'
+        );
+
         // Create placeholders like %d, %d, %d
         $placeholders = implode(',', array_fill(0, count($moodle_ids), '%d'));
 
-
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching 
+        // phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
         $missing = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT moodle_id, wc_product_id 
-                FROM " . esc_sql($table) . "
-                WHERE moodle_id NOT IN (" . implode(',', array_fill(0, count($moodle_ids), '%d')) . ")",
+                "SELECT moodle_id, wc_product_id
+        FROM " . esc_sql($table) . "
+        WHERE moodle_id NOT IN (" . $placeholders . ")",
                 ...$moodle_ids
             )
         );
+        // phpcs:enable
 
         if (empty($missing)) {
             return;
@@ -444,15 +625,54 @@ class CourseSyncService
                 $product = wc_get_product($course->wc_product_id);
 
                 if ($product) {
-                    $product->set_status('draft');
-                    $product->set_catalog_visibility('hidden');
-                    $product->save();
+
+                    // Trash product
+                    if ($missing_course_action === 'trash') {
+
+                        wp_trash_post($course->wc_product_id);
+
+                        Logger::warning(
+                            'Missing Moodle course moved to trash',
+                            [
+                                'module' => 'course_sync',
+                                'moodle_course_id' => $course->moodle_id,
+                                'product_id' => $course->wc_product_id,
+                            ]
+                        );
+                    }
+
+                    // Keep product published
+                    elseif ($missing_course_action === 'keep') {
+
+                        Logger::warning(
+                            'Missing Moodle course kept published',
+                            [
+                                'module' => 'course_sync',
+                                'moodle_course_id' => $course->moodle_id,
+                                'product_id' => $course->wc_product_id,
+                                'strategy' => 'keep',
+                            ]
+                        );
+                    }
+
+                    // Default: mark draft
+                    else {
+
+                        $product->set_status('draft');
+                        $product->set_catalog_visibility('hidden');
+                        $product->save();
+
+                        Logger::warning(
+                            'Missing Moodle course marked as draft',
+                            [
+                                'module' => 'course_sync',
+                                'moodle_course_id' => $course->moodle_id,
+                                'product_id' => $course->wc_product_id,
+                            ]
+                        );
+                    }
                 }
             }
-
-            Logger::log('COURSE MARKED MISSING', [
-                'moodle_id' => $course->moodle_id,
-            ]);
         }
     }
 
@@ -460,7 +680,11 @@ class CourseSyncService
     {
         global $wpdb;
 
-        $table = $wpdb->prefix . 'coursetransit_courses';
+        $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
+        $settings = get_option('coursetransit_settings', []);
+        $missing_course_action = sanitize_text_field(
+            $settings['missing_course_action'] ?? 'draft'
+        );
 
         // Fetch course from DB
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -476,9 +700,13 @@ class CourseSyncService
 
         // If not found, nothing to do
         if (!$row) {
-            Logger::log(
-                'MARK ONE MISSING SKIPPED - NOT FOUND',
-                'moodle_id=' . $moodleId
+            Logger::debug(
+                'Missing course update skipped',
+                [
+                    'module' => 'course_sync',
+                    'moodle_course_id' => $moodleId,
+                    'reason' => 'course_not_found_in_local_database',
+                ]
             );
             return;
         }
@@ -502,16 +730,56 @@ class CourseSyncService
             $product = wc_get_product((int) $row->wc_product_id);
 
             if ($product) {
-                $product->set_status('draft');
-                $product->set_catalog_visibility('hidden');
-                $product->save();
+
+                // Trash product
+                if ($missing_course_action === 'trash') {
+
+                    wp_trash_post($row->wc_product_id);
+
+                    Logger::warning(
+                        'Missing Moodle course moved to trash',
+                        [
+                            'module' => 'course_sync',
+                            'moodle_course_id' => $row->moodle_id,
+                            'product_id' => $row->wc_product_id,
+                            'strategy' => 'trash',
+                        ]
+                    );
+                }
+
+                // Keep product published
+                elseif ($missing_course_action === 'keep') {
+
+                    Logger::warning(
+                        'Missing Moodle course kept published',
+                        [
+                            'module' => 'course_sync',
+                            'moodle_course_id' => $row->moodle_id,
+                            'product_id' => $row->wc_product_id,
+                            'strategy' => 'keep',
+                        ]
+                    );
+                }
+
+                // Default: mark draft
+                else {
+
+                    $product->set_status('draft');
+                    $product->set_catalog_visibility('hidden');
+                    $product->save();
+
+                    Logger::warning(
+                        'Missing Moodle course marked as draft',
+                        [
+                            'module' => 'course_sync',
+                            'moodle_course_id' => $row->moodle_id,
+                            'product_id' => $row->wc_product_id,
+                            'strategy' => 'draft',
+                        ]
+                    );
+                }
             }
         }
-
-        Logger::log(
-            'COURSE MARKED MISSING (SINGLE)',
-            'moodle_id=' . $moodleId . ' | product_id=' . ($row->wc_product_id ?? 'null')
-        );
     }
 
     public static function runChunk(int $offset, int $limit): array
@@ -573,7 +841,7 @@ class CourseSyncService
         if (
             $offset === 0 &&
             // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce already verified in controller.
-            empty($_POST['processed_once'])
+            empty(sanitize_text_field(wp_unslash($_POST['processed_once'] ?? '')))
         ) {
             return [
                 'total' => $total,

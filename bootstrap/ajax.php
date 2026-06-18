@@ -6,6 +6,7 @@ use CourseTransit\Controllers\OrdersController;
 use CourseTransit\Controllers\SettingsController;
 use CourseTransit\Controllers\EmailsController;
 use CourseTransit\Controllers\InstructorController;
+use CourseTransit\Controllers\LogsController;
 
 add_action('wp_ajax_coursetransit_sync_courses', function () {
     (new CoursesController())->sync();
@@ -20,6 +21,14 @@ add_action('wp_ajax_coursetransit_courses_table', function () {
 
 add_action('wp_ajax_coursetransit_sync_single_course', function () {
     (new CoursesController())->syncSingle();
+});
+
+add_action('wp_ajax_coursetransit_get_course_settings', function () {
+    (new CoursesController())->getCourseSettings();
+});
+
+add_action('wp_ajax_coursetransit_save_course_settings', function () {
+    (new CoursesController())->saveCourseSettings();
 });
 
 add_action('wp_ajax_coursetransit_get_product', function () {
@@ -144,4 +153,14 @@ add_action('wp_ajax_coursetransit_instructor_courses', function () {
     (new InstructorController())->coursesList();
 });
 
+add_action('wp_ajax_coursetransit_logs_table', function () {
+    (new LogsController())->datatable();
+});
 
+add_action('wp_ajax_coursetransit_get_log_settings', function () {
+    (new LogsController())->getSettings();
+});
+
+add_action('wp_ajax_coursetransit_save_log_settings', function () {
+    (new LogsController())->saveSettings();
+});

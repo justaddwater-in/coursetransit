@@ -103,13 +103,13 @@ class Assets
         );
 
         // Shards Dashboard JS (NO demo logic)
-        wp_enqueue_script(
-            'coursetransit-shards-dashboard',
-            COURSETRANSIT_URL . 'assets/shards/js/shards-dashboards.1.1.0.min.js',
-            ['jquery', 'coursetransit-bootstrap'],
-            $version,
-            true
-        );
+        // wp_enqueue_script(
+        //     'coursetransit-shards-dashboard',
+        //     COURSETRANSIT_URL . 'assets/shards/js/shards-dashboards.1.1.0.min.js',
+        //     ['jquery', 'coursetransit-bootstrap'],
+        //     $version,
+        //     true
+        // );
 
         // coursetransit Settings JS
         wp_enqueue_script(
@@ -120,10 +120,27 @@ class Assets
             true
         );
 
+        wp_enqueue_script(
+            'coursetransit-logs',
+            COURSETRANSIT_URL . 'assets/js/logs.js',
+            ['jquery'],
+            $version,
+            true
+        );
+
         wp_localize_script('coursetransit-settings', 'CourseTransitAjax', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('coursetransit_settings_nonce'),
         ]);
+
+        wp_localize_script(
+            'coursetransit-logs',
+            'CourseTransitLogs',
+            [
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('coursetransit_nonce'),
+            ]
+        );
 
         wp_enqueue_script(
             'coursetransit-orders',

@@ -27,7 +27,7 @@ table.dataTable {
 }
 
 /* Subtle striped rows (neutral) */
-.table-striped > tbody > tr:nth-of-type(odd) > * {
+.table-striped>tbody>tr:nth-of-type(odd)>* {
     --bs-table-striped-bg: #fafafa !important;
     background-color: var(--bs-table-striped-bg) !important;
 }
@@ -779,3 +779,95 @@ body.ct-modal-open {
     text-decoration: none !important;
 }
 
+/* ===============================
+   SYNC SETTINGS TAB
+   =============================== */
+#tab-sync .form-control {
+    max-width: 520px;
+}
+
+
+#tab-sync .sync-setting-group {
+    margin-bottom: 28px;
+}
+
+#tab-sync .sync-save-wrapper {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 20px;
+    margin-top: 10px;
+}
+
+.nav-tabs .nav-link {
+    font-weight: 500;
+}
+
+#coursetransit-settings-form .button,
+#coursetransit-settings-form .btn {
+    line-height: 2.15384615 !important;
+}
+
+select.form-control:not([size]):not([multiple]) {
+    height: calc(1.09375rem + 2px) !important;
+}
+
+.cts-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.cts-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.cts-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #d1d5db;
+    transition: .2s;
+    border-radius: 999px;
+}
+
+.cts-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 3px;
+    background: #fff;
+    transition: .2s;
+    border-radius: 50%;
+    box-shadow:
+        0 1px 3px rgba(0,0,0,.2);
+}
+
+.cts-switch input:checked + .cts-slider {
+    background: #2271b1;
+}
+
+.cts-switch input:checked + .cts-slider:before {
+    transform: translateX(22px);
+}
+
+.cts-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.cts-log-settings-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: none;
+    background: #fff;
+}
+
+.cts-log-settings-card .card-body {
+    padding: 16px 20px;
+}

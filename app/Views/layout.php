@@ -22,7 +22,10 @@ if (!defined('ABSPATH')) {
       <?php ConnectionNotice::render(); ?>
 
       <div class="main-content-container container-fluid px-4 py-4">
+
+        <?php require COURSETRANSIT_PATH . 'app/Views/partials/setup-modal.php'; ?>
         <?php require COURSETRANSIT_PATH . 'app/Views/' . $view . '.php'; ?>
+        
       </div>
 
     </main>

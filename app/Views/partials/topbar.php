@@ -25,18 +25,12 @@ $coursetransit_version = $coursetransit_plugin_data['Version'] ?? '1.0.0';
         style="height:56px; padding:0 12px;">
 
         <div class="d-flex align-items-center justify-content-center" style="height:100%;">
-          <span style="
-        font-size:13px;
-        color:#6b7280;
-        font-weight:500;
-        line-height:1;
-        ">
-            <?php echo esc_html($coursetransit_version); ?>
+          <span style="font-size:13px; color:#6b7280; font-weight:500; line-height:1;">
+              v<?php echo esc_html(COURSETRANSIT_VERSION); ?>
           </span>
         </div>
 
       </li>
-
 
 <li class="nav-item border-right d-flex align-items-center px-3">
 

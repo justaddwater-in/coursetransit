@@ -1,3 +1,84 @@
+// Default template content
+const defaultTemplates = {
+    enrollment: {
+        subject: 'You are enrolled in {course_name}',
+        body: `
+            <p>Hi {first_name},</p>
+
+            <p>
+                We’re excited to let you know that you’ve been successfully enrolled in:
+            </p>
+
+            <p style="font-size: 16px;">
+                <strong>{course_name}</strong>
+            </p>
+
+            <p>
+                You can start learning immediately by logging into your dashboard here:
+            </p>
+
+            <p>
+                <a href="{login_url}" target="_blank" rel="noopener">
+                    Access your course
+                </a>
+            </p>
+
+            <hr />
+
+            <strong>Your account details:</strong>
+
+            <ul>
+                <li>Email: {email}</li>
+                <li>Password: {password}</li>
+            </ul>
+
+            <p>
+                If you have any questions, just reply to this email — we’re happy to help.
+            </p>
+
+            <p>
+                Happy learning,<br>
+                <strong>The {site_name} Team</strong>
+            </p>
+
+            <p style="font-size:12px;color:#6b7280;">
+                If the button above doesn’t work, copy and paste this link into your browser:<br>
+                {login_url}
+            </p>
+            `
+    },
+
+    enrollment_existing: {
+        subject: 'You are enrolled in {course_name}',
+        body: `
+            <p>Hi {first_name},</p>
+
+            <p>
+                You have been successfully added to the course:
+            </p>
+
+            <p style="font-size: 16px;">
+                <strong>{course_name}</strong>
+            </p>
+
+            <p>
+                You can continue learning by logging into your dashboard:
+            </p>
+
+            <p>
+                <a href="{login_url}" target="_blank" rel="noopener">
+                    Go to your dashboard
+                </a>
+            </p>
+
+            <p>
+                Happy learning,<br>
+                <strong>The {site_name} Team</strong>
+            </p>
+            `
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function () {
 
     let lastFocused = null;
@@ -42,80 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Default template content
-    const defaultTemplates = {
-        enrollment: `
-    <p>Hi {first_name},</p>
 
-    <p>
-    We’re excited to let you know that you’ve been successfully enrolled in:
-    </p>
-
-    <p style="font-size:16px;">
-    <strong>{course_name}</strong>
-    </p>
-
-    <p>
-    You can start learning immediately by logging into your dashboard here:
-    </p>
-
-    <p>
-    <a href="{login_url}" target="_blank" rel="noopener">
-        Access your course
-    </a>
-    </p>
-
-    <hr>
-
-    <p><strong>Your account details:</strong></p>
-
-    <ul>
-    <li>Email: {email}</li>
-    <li>Password: {password}</li>
-    </ul>
-
-    <p>
-    If you have any questions, just reply to this email — we’re happy to help.
-    </p>
-
-    <p>
-    Happy learning,<br>
-    <strong>The {site_name} Team</strong>
-    </p>
-
-    <p style="font-size:12px;color:#6b7280;">
-    If the button above doesn’t work, copy and paste this link into your browser:<br>
-    {login_url}
-    </p>
-    `,
-
-        enrollment_existing: `
-    <p>Hi {first_name},</p>
-
-    <p>
-    You have been successfully added to the course:
-    </p>
-
-    <p style="font-size:16px;">
-    <strong>{course_name}</strong>
-    </p>
-
-    <p>
-    You can continue learning by logging into your dashboard:
-    </p>
-
-    <p>
-    <a href="{login_url}" target="_blank" rel="noopener">
-        Go to your dashboard
-    </a>
-    </p>
-
-    <p>
-    Happy learning,<br>
-    <strong>The {site_name} Team</strong>
-    </p>
-    `
-    };
 
 
     // Handle default template button
@@ -145,7 +153,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     const editor = tinymce.get('body');
                     if (editor && !editor.isHidden()) {
                         const selected = document.getElementById('coursetransit-template-select').value;
-                        editor.setContent(defaultTemplates[selected] || '');
+                        editor.setContent(defaultTemplates[selected]?.body || '');
+                        document.getElementById('coursetransit-subject').value =
+                            defaultTemplates[selected]?.subject || '';
                         editor.focus();
                         return;
                     }
@@ -154,7 +164,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Fallback to textarea
                 if (textarea) {
                     const selected = document.getElementById('coursetransit-template-select').value;
-                    textarea.value = defaultTemplates[selected] || '';
+                    textarea.value = defaultTemplates[selected]?.body || '';
+
+                    document.getElementById('coursetransit-subject').value =
+                        defaultTemplates[selected]?.subject || '';
                     textarea.focus();
                 }
 
@@ -360,14 +373,25 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => {
                 if (!res.success) return;
 
-                document.getElementById('coursetransit-subject').value = res.data.subject || '';
+                const selected = select.value;
+
+                const subject = res.data?.subject?.trim()
+                    ? res.data.subject
+                    : defaultTemplates[selected].subject;
+
+                const body = res.data?.body?.trim()
+                    ? res.data.body
+                    : defaultTemplates[selected].body;
+
+                document.getElementById('coursetransit-subject').value = subject;
 
                 const applyBody = () => {
                     const editor = tinymce.get('body');
+
                     if (editor && !editor.isHidden()) {
-                        editor.setContent(res.data.body || '');
+                        editor.setContent(body);
                     } else {
-                        document.getElementById('body').value = res.data.body || '';
+                        document.getElementById('body').value = body;
                     }
                 };
 

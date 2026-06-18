@@ -123,8 +123,6 @@ class MoodleEnrollmentService
             return;
         }
 
-        Logger::log('USER ID RESOLVED', ['user_id' => $user_id]);
-
         // ---------------------------------
         // COURSE DURATION
         // ---------------------------------
@@ -136,33 +134,59 @@ class MoodleEnrollmentService
             )
         );
 
-        $duration_days = 0;
+        // ---------------------------------
+        // ENROLLMENT PERIOD
+        // ---------------------------------
 
-        if ($courseDates && $courseDates->start_date && $courseDates->end_date) {
-            $seconds = (int) $courseDates->end_date - (int) $courseDates->start_date;
-            if ($seconds > 0) {
-                $duration_days = (int) floor($seconds / 86400);
-            }
-        }
+        $product_enrollment = get_post_meta(
+            $product_id,
+            '_coursetransit_enrollment_period',
+            true
+        );
 
-        $total_days = $duration_days + 3650;
+        $product_enrollment = $product_enrollment !== ''
+            ? (int) $product_enrollment
+            : null;
+
+        $default_enrollment = (int) (
+            $settings['default_enrollment_period']
+            ?? 0
+        );
+
+        // Product setting takes priority
+        $enrollment_days = $product_enrollment !== null
+            ? $product_enrollment
+            : $default_enrollment;
 
         $timestart = time();
-        $timeend = strtotime("+{$total_days} days", $timestart);
 
-        // ---------------------------------
-        // ENROLL USER
-        // ---------------------------------
-        $enrol_response = self::call($moodle_url, $token, 'enrol_manual_enrol_users', [
-            'enrolments' => [
-                [
-                    'roleid' => 5,
-                    'userid' => $user_id,
-                    'courseid' => $course->moodle_id,
-                    'timestart' => $timestart,
+        $enrolment = [
+            'roleid' => 5,
+            'userid' => $user_id,
+            'courseid' => $course->moodle_id,
+            'timestart' => $timestart,
+        ];
+
+        // Add timeend only when not lifetime
+        if ($enrollment_days > 0) {
+
+            $enrolment['timeend'] = strtotime(
+                "+{$enrollment_days} days",
+                $timestart
+            );
+
+        }
+
+        $enrol_response = self::call(
+            $moodle_url,
+            $token,
+            'enrol_manual_enrol_users',
+            [
+                'enrolments' => [
+                    $enrolment
                 ]
             ]
-        ]);
+        );
 
         if (
             (isset($enrol_response['success']) && $enrol_response['success'] === true)
@@ -316,8 +340,8 @@ class MoodleEnrollmentService
         // Native Moodle exception.
         if (
             !empty(
-                $json['exception']
-            )
+            $json['exception']
+        )
         ) {
             return [
                 'success' => false,
@@ -330,16 +354,16 @@ class MoodleEnrollmentService
         // CourseTransit wrapper failure.
         if (
             empty(
-                $json['success']
-            )
+            $json['success']
+        )
         ) {
 
             $errordata = [];
 
             if (
                 !empty(
-                    $json['data']
-                )
+                $json['data']
+            )
             ) {
                 $errordata =
                     json_decode(
@@ -362,8 +386,8 @@ class MoodleEnrollmentService
 
         if (
             !empty(
-                $json['data']
-            )
+            $json['data']
+        )
         ) {
             $decoded =
                 json_decode(

@@ -2,6 +2,7 @@
 namespace CourseTransit\Controllers;
 
 use CourseTransit\Services\CourseSyncService;
+use CourseTransit\Support\Logger;
 
 class CoursesController extends BaseController
 {
@@ -35,6 +36,7 @@ class CoursesController extends BaseController
             ]);
         }
     }
+
 
     public function table()
     {
@@ -76,29 +78,69 @@ class CoursesController extends BaseController
 
             $product_id = (int) ($row['wc_product_id'] ?? 0);
 
+
             /* ----------------------------------------
              * PRICE
              * ------------------------------------- */
 
             $price = '—';
 
+            /* ---------------- PRICE ---------------- */
+
             if ($product_id) {
+
 
                 $product = wc_get_product($product_id);
 
                 if ($product) {
+
 
                     $regular = $product->get_regular_price();
                     $sale = $product->get_sale_price();
 
                     if ($sale) {
 
-                        $price = '<del>' . wc_price($regular) . '</del>
-                        <ins>' . wc_price($sale) . '</ins>';
+
+                        $price =
+                            '<del>' . wc_price($regular) . '</del>
+                        ' .
+                            '<ins>' . wc_price($sale) . '</ins>';
+
 
                     } elseif ($regular) {
 
+
                         $price = wc_price($regular);
+                    }
+                }
+            }
+
+            /* ---------------- ENROLLED COUNT ---------------- */
+
+            $enrolled_count = 0;
+
+            if ($product_id) {
+
+                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+                $orders = wc_get_orders([
+                    'limit' => -1,
+                    'status' => ['wc-processing', 'wc-completed'],
+                    'return' => 'ids',
+                ]);
+
+                foreach ($orders as $order_id) {
+
+                    $order = wc_get_order($order_id);
+
+                    if (!$order) {
+                        continue;
+                    }
+
+                    foreach ($order->get_items() as $item) {
+
+                        if ((int) $item->get_product_id() === $product_id) {
+                            $enrolled_count++;
+                        }
                     }
                 }
             }
@@ -126,6 +168,8 @@ class CoursesController extends BaseController
                     "
                 >
             ';
+
+            /* ---------------- ACTIONS ---------------- */
 
             /* ----------------------------------------
              * STATUS
@@ -161,15 +205,19 @@ class CoursesController extends BaseController
 
             $actions = [];
 
+
             $actions[] = '
-                <div class="coursetransit-actions" style="
-                    display:flex;
-                    gap:6px;
-                    align-items:center;
-                ">
-            ';
+                
+            <div class="coursetransit-actions" style="
+                        display:flex;
+                        gap:6px;
+                        align-items:center;
+                    ">
+            
+        ';
 
             /* Sync */
+
 
             $actions[] = '
                 <button
@@ -183,18 +231,36 @@ class CoursesController extends BaseController
                         gap:4px;
                     ">
                     <span class="material-icons" style="font-size:16px;">
-                        sync
-                    </span>
+                        
+                    sync
+                    
+                </span>
                     Sync
                 </button>
             ';
 
-            /* Product actions */
+            /* Details */
+            //     $actions[] = '
+            //     <button
+            //         class="button button-small view-activities"
+            //         data-id="' . intval($row['id']) . '"
+            //         style="
+            //             border-radius:4px;
+            //             padding:2px 10px;
+            //             display:flex;
+            //             align-items:center;
+            //             gap:4px;
+            //         ">
+            //         <span class="material-icons" style="font-size:16px;">list_alt</span>
+            //         Details
+            //     </button>
+            // ';
 
+            /* WooCommerce product actions */
             if ($product_id) {
 
                 $actions[] = '
-                    <button
+                <button
                         class="button button-small view-activities"
                         data-id="' . intval($row['id']) . '"
                         style="
@@ -204,12 +270,10 @@ class CoursesController extends BaseController
                             align-items:center;
                             gap:4px;
                         ">
-                        <span class="material-icons" style="font-size:16px;">
-                            list_alt
-                        </span>
+                        <span class="material-icons" style="font-size:16px;">list_alt</span>
                         Details
                     </button>
-                ';
+                    ';
 
                 $actions[] = '
                     <button
@@ -238,9 +302,11 @@ class CoursesController extends BaseController
              * ------------------------------------- */
 
             return [
+
                 'sr' => $sr++,
 
                 'image' => $image,
+
 
                 'fullname' => $product_id
                     ? '<a href="' . esc_url(get_permalink($product_id)) . '" target="_blank">'
@@ -248,18 +314,54 @@ class CoursesController extends BaseController
                     '</a>'
                     : esc_html($row['fullname']),
 
-                'visible' => $status,
+                'shortname' => esc_html($row['shortname']),
+
+                'enrolled_count' => $enrolled_count,
+
+                'visible' => (function () use ($product_id) {
+
+                    if (!$product_id) {
+                        return '<span class="badge badge-light">—</span>';
+                    }
+
+                    $product = wc_get_product($product_id);
+
+                    if (!$product) {
+                        return '<span class="badge badge-light">—</span>';
+                    }
+
+                    $status = $product->get_status();
+
+                    $map = [
+                        'publish' => '<span class="badge badge-success">Published</span>',
+                        'draft' => '<span class="badge badge-secondary">Draft</span>',
+                        'pending' => '<span class="badge badge-secondary">Pending</span>',
+                        'private' => '<span class="badge badge-secondary">Private</span>',
+                    ];
+
+                    return $map[$status]
+                        ?? '<span class="badge badge-light">' .
+                        ucfirst($status) .
+                        '</span>';
+
+                })(),
 
                 'last_synced_at' => esc_html($row['last_synced_at']),
 
+
                 'price' => $price,
+
 
                 'actions' => implode(' ', $actions),
             ];
 
+
         }, $rows);
 
         wp_send_json([
+            'draw' => $draw,
+            'recordsTotal' => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
             'data' => $data,
         ]);
     }
@@ -273,11 +375,13 @@ class CoursesController extends BaseController
         }
 
         $courseId = intval($_GET['id'] ?? 0);
+
         if (!$courseId) {
             wp_send_json_error('Invalid course ID', 400);
         }
 
         global $wpdb;
+
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 
         $activitiesSql = "
@@ -290,6 +394,7 @@ class CoursesController extends BaseController
                 moodle_updated_at, last_synced_at, course_image_url, curriculum_json
             FROM {$table}
             WHERE id = %d
+            LIMIT 1
         ";
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared
@@ -305,55 +410,261 @@ class CoursesController extends BaseController
             wp_send_json_error('Course not found', 404);
         }
 
+        /* ===============================
+         * CURRICULUM
+         * =============================== */
+
+        $curriculum = json_decode(
+            $course['curriculum_json'],
+            true
+        ) ?: [];
+
+        /* ===============================
+         * ACTIVITY COUNT
+         * =============================== */
+
+        $activity_count = 0;
+
+        foreach ($curriculum as $section) {
+
+            $activity_count += count(
+                $section['items'] ?? []
+            );
+        }
+
+        /* ===============================
+         * ENROLLED COUNT
+         * =============================== */
+
+        $enrolled_count = 0;
+
+        if (!empty($course['wc_product_id'])) {
+
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+            $orders = wc_get_orders([
+                'limit' => -1,
+                'status' => ['wc-processing', 'wc-completed'],
+                'return' => 'ids',
+            ]);
+
+            foreach ($orders as $order_id) {
+
+                $order = wc_get_order($order_id);
+
+                if (!$order) {
+                    continue;
+                }
+
+                foreach ($order->get_items() as $item) {
+
+                    if (
+                        (int) $item->get_product_id()
+                        === (int) $course['wc_product_id']
+                    ) {
+                        $enrolled_count++;
+                    }
+                }
+            }
+        }
+
+        /* ===============================
+         * CATEGORIES
+         * =============================== */
+
+        $categories = [];
+
+        if (!empty($course['wc_product_id'])) {
+
+            $terms = get_the_terms(
+                $course['wc_product_id'],
+                'product_cat'
+            );
+
+            if (!empty($terms) && !is_wp_error($terms)) {
+
+                $categories = array_map(
+                    static fn($term) => $term->name,
+                    $terms
+                );
+            }
+        }
+
+        /* ===============================
+         * PRODUCT DATA
+         * =============================== */
+
+        $price = '—';
+        $product_status = '—';
+        $enrollment_period = '—';
+
+        if (!empty($course['wc_product_id'])) {
+
+            $product = wc_get_product(
+                $course['wc_product_id']
+            );
+
+            if ($product) {
+
+                $regular = $product->get_regular_price();
+                $sale = $product->get_sale_price();
+
+                if ($sale) {
+
+                    $price =
+                        '<del>' . wc_price($regular) . '</del> ' .
+                        '<ins>' . wc_price($sale) . '</ins>';
+
+                } elseif ($regular) {
+
+                    $price = wc_price($regular);
+                }
+
+                $product_status = $product->get_status();
+
+                $enrollment_period = get_post_meta(
+                    $course['wc_product_id'],
+                    '_course_access_days',
+                    true
+                );
+
+                if (
+                    $enrollment_period === '' ||
+                    $enrollment_period === null
+                ) {
+                    $enrollment_period = 'Lifetime';
+                } else {
+                    $enrollment_period .= ' Days';
+                }
+            }
+        }
+
+        /* ===============================
+         * MOODLE URL
+         * =============================== */
+
+        $moodle_url = null;
+
+        $moodle_base_url = trailingslashit(
+            get_option('coursetransit_moodle_url')
+        );
+
+        if (!empty($course['moodle_id'])) {
+
+            $moodle_url =
+                $moodle_base_url .
+                'course/view.php?id=' .
+                $course['moodle_id'];
+        }
+
         wp_send_json_success([
+
             'course' => [
+
                 'id' => $course['id'],
+
                 'moodle_id' => $course['moodle_id'],
+
+                'moodle_url' => $moodle_url,
+
                 'fullname' => $course['fullname'],
+
                 'shortname' => $course['shortname'],
+
                 'displayname' => $course['displayname'],
+
                 'idnumber' => $course['idnumber'],
-                'visible' => $course['visible'] ? 'Visible' : 'Hidden',
+
+                'visible' => $course['visible']
+                    ? 'Visible'
+                    : 'Hidden',
 
                 'format' => $course['format'],
+
                 'num_sections' => $course['num_sections'],
+
                 'news_items' => $course['news_items'],
-                'max_bytes' => size_format($course['max_bytes']),
+
+                'activity_count' => $activity_count,
+
+                'enrolled_count' => $enrolled_count,
+
+                'categories' => $categories,
+
+                'max_bytes' => size_format(
+                    $course['max_bytes']
+                ),
+
                 'lang' => $course['lang'],
+
                 'force_theme' => $course['force_theme'],
 
                 'group_mode' => $course['group_mode'],
+
                 'group_mode_force' => $course['group_mode_force'],
+
                 'default_grouping' => $course['default_grouping_id'],
 
-                'completion' => $course['enable_completion'] ? 'Enabled' : 'Disabled',
-                'completion_notify' => $course['completion_notify'] ? 'Yes' : 'No',
+                'completion' => $course['enable_completion']
+                    ? 'Enabled'
+                    : 'Disabled',
 
-                'show_grades' => $course['show_grades'] ? 'Yes' : 'No',
-                'show_reports' => $course['show_reports'] ? 'Yes' : 'No',
+                'completion_notify' => $course['completion_notify']
+                    ? 'Yes'
+                    : 'No',
+
+                'show_grades' => $course['show_grades']
+                    ? 'Yes'
+                    : 'No',
+
+                'show_reports' => $course['show_reports']
+                    ? 'Yes'
+                    : 'No',
+
                 'hidden_sections' => $course['hidden_sections'],
 
                 'start_date' => $course['start_date']
-                    ? wp_date('Y-m-d', $course['start_date']) : '—',
+                    ? wp_date('Y-m-d', $course['start_date'])
+                    : '—',
+
                 'end_date' => $course['end_date']
-                    ? wp_date('Y-m-d', $course['end_date']) : '—',
+                    ? wp_date('Y-m-d', $course['end_date'])
+                    : '—',
+
                 'created_at' => $course['moodle_created_at']
-                    ? wp_date('Y-m-d', $course['moodle_created_at']) : '—',
+                    ? wp_date('Y-m-d', $course['moodle_created_at'])
+                    : '—',
+
                 'updated_at' => $course['moodle_updated_at']
-                    ? wp_date('Y-m-d', $course['moodle_updated_at']) : '—',
+                    ? wp_date('Y-m-d', $course['moodle_updated_at'])
+                    : '—',
 
                 'last_synced' => $course['last_synced_at'],
+
                 'image' => $course['course_image_url'],
+
+                'price' => $price,
+
+                'product_status' => $product_status,
+
+                'enrollment_period' => $enrollment_period,
 
                 'product' => [
                     'id' => $course['wc_product_id'],
+
                     'view' => $course['wc_product_id']
-                        ? get_permalink($course['wc_product_id']) : null,
+                        ? get_permalink($course['wc_product_id'])
+                        : null,
+
                     'edit' => $course['wc_product_id']
-                        ? get_edit_post_link($course['wc_product_id'], '') : null,
+                        ? get_edit_post_link(
+                            $course['wc_product_id'],
+                            ''
+                        )
+                        : null,
                 ],
             ],
-            'curriculum' => json_decode($course['curriculum_json'], true) ?: []
+
+            'curriculum' => $curriculum,
         ]);
     }
 
@@ -428,6 +739,11 @@ class CoursesController extends BaseController
             'sku' => $product->get_sku(),
             'visibility' => $product->get_catalog_visibility(),
             'featured' => $product->get_featured() ? 'yes' : 'no',
+            'enrollment_period' => get_post_meta(
+                $product_id,
+                '_coursetransit_enrollment_period',
+                true
+            ),
 
             // LINKS
             'edit_url' => admin_url('post.php?post=' . $product_id . '&action=edit'),
@@ -512,6 +828,29 @@ class CoursesController extends BaseController
         $featured = isset($_POST['featured'])
             && sanitize_text_field(wp_unslash($_POST['featured'])) === 'yes';
 
+        $enrollment_period = isset($_POST['enrollment_period'])
+            ? sanitize_text_field(wp_unslash($_POST['enrollment_period']))
+            : '';
+
+        $custom_enrollment_period = isset($_POST['custom_enrollment_period'])
+            ? intval(wp_unslash($_POST['custom_enrollment_period']))
+            : 0;
+
+        if ($enrollment_period === 'custom') {
+
+            $enrollment_period = max(1, $custom_enrollment_period);
+
+        } elseif (
+            $enrollment_period === '' ||
+            $enrollment_period === null
+        ) {
+
+            $enrollment_period = '';
+
+        } else {
+
+            $enrollment_period = intval($enrollment_period);
+        }
         /* ---------------- UPDATE PRODUCT ---------------- */
 
         $product->set_name($name);
@@ -528,6 +867,11 @@ class CoursesController extends BaseController
 
         $product->set_catalog_visibility($visibility);
         $product->set_featured($featured);
+        update_post_meta(
+            $product_id,
+            '_coursetransit_enrollment_period',
+            $enrollment_period
+        );
 
         $product->save();
 
@@ -632,5 +976,97 @@ class CoursesController extends BaseController
         } catch (\Throwable $e) {
             wp_send_json_error($e->getMessage(), 500);
         }
+    }
+    public function getCourseSettings()
+    {
+        check_ajax_referer('coursetransit_nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized', 403);
+        }
+
+        $settings = get_option('coursetransit_settings', []);
+
+        wp_send_json_success([
+
+            'default_enrollment_period' => intval(
+                $settings['default_enrollment_period'] ?? 0
+            ),
+
+            'product_status' => sanitize_text_field(
+                $settings['product_status'] ?? 'publish'
+            ),
+
+            'product_content_sync' => sanitize_text_field(
+                $settings['product_content_sync'] ?? 'all'
+            ),
+
+            'sync_curriculum' => sanitize_text_field(
+                $settings['sync_curriculum'] ?? 'all'
+            ),
+
+            'category_sync' => sanitize_text_field(
+                $settings['category_sync'] ?? 'all'
+            ),
+
+            'image_sync' => sanitize_text_field(
+                $settings['image_sync'] ?? 'all'
+            ),
+
+            'missing_course_action' => sanitize_text_field(
+                $settings['missing_course_action'] ?? 'draft'
+            ),
+
+        ]);
+    }
+
+    public function saveCourseSettings()
+    {
+        check_ajax_referer('coursetransit_nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized', 403);
+        }
+
+        $settings = get_option('coursetransit_settings', []);
+
+        $settings['default_enrollment_period'] = isset($_POST['default_enrollment_period'])
+            ? intval(wp_unslash($_POST['default_enrollment_period']))
+            : 0;
+
+        $settings['product_status'] = isset($_POST['product_status'])
+            ? sanitize_text_field(wp_unslash($_POST['product_status']))
+            : 'publish';
+
+        $settings['product_content_sync'] = isset($_POST['product_content_sync'])
+            ? sanitize_text_field(wp_unslash($_POST['product_content_sync']))
+            : 'all';
+
+        $settings['sync_curriculum'] = isset($_POST['sync_curriculum'])
+            ? sanitize_text_field(wp_unslash($_POST['sync_curriculum']))
+            : 'all';
+
+        $settings['category_sync'] = isset($_POST['category_sync'])
+            ? sanitize_text_field(wp_unslash($_POST['category_sync']))
+            : 'all';
+
+        $settings['image_sync'] = isset($_POST['image_sync'])
+            ? sanitize_text_field(wp_unslash($_POST['image_sync']))
+            : 'all';
+
+        $settings['missing_course_action'] = isset($_POST['missing_course_action'])
+            ? sanitize_text_field(wp_unslash($_POST['missing_course_action']))
+            : 'draft';
+
+        Logger::debug('Saving CourseTransit settings', $settings);
+
+        update_option(
+            'coursetransit_settings',
+            $settings
+        );
+
+        wp_send_json_success([
+            'message' => 'Settings saved',
+        ]);
     }
 }
