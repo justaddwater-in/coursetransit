@@ -31,36 +31,6 @@ $coursetransit_version = $coursetransit_plugin_data['Version'] ?? '1.0.0';
         </div>
 
       </li>
-
-<li class="nav-item border-right d-flex align-items-center px-3">
-
-  <a
-    class="ct-back-link d-flex align-items-center"
-    href="<?php echo esc_url(admin_url()); ?>"
-    title="<?php echo esc_attr__('Back to WordPress Admin', 'coursetransit'); ?>"
-    style="
-      gap:8px;
-      color:#2271b1;
-      font-size:13px;
-      font-weight:600;
-      height:56px;
-    "
-  >
-
-    <i class="material-icons" style="font-size:20px;">
-      arrow_back
-    </i>
-
-    <span>
-      <?php echo esc_html__('Back to WordPress Admin', 'coursetransit'); ?>
-    </span>
-
-  </a>
-
-</li>
-
-
-
     </ul>
 
     <nav class="nav">

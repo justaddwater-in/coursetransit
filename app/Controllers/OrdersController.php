@@ -16,6 +16,8 @@ class OrdersController extends BaseController
     }
     public function table()
     {
+        check_ajax_referer('coursetransit_nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error([
                 'message' => esc_html__(
@@ -24,10 +26,9 @@ class OrdersController extends BaseController
                 )
             ], 403);
         }
-        check_ajax_referer('coursetransit_nonce');
 
         $query = new WC_Order_Query([
-            'limit' => 50, // load all orders
+            'limit' => 150, //  load latest 150 orders 
             'status' => ['completed', 'processing', 'on-hold', 'failed'],
             'return' => 'objects',
             'orderby' => 'date',

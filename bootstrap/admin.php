@@ -2,6 +2,9 @@
 defined('ABSPATH') || exit;
 
 use CourseTransit\Route;
+use CourseTransit\Services\InstallWebhook;
+
+InstallWebhook::register();
 
 /**
  * Handle POST requests for CourseTransit admin page

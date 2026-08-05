@@ -4,7 +4,7 @@ Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -123,6 +123,13 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Changelog ==
 
+= 1.4.1 =
+* Added: Optional admin consent notice for receiving setup tips, changelog notifications, and license updates.
+* Added: Consent preferences are only saved after an explicit admin action.
+* Improved: Plugin stability and compatibility with the latest WordPress version.
+* Improved: Code quality and WordPress Coding Standards compliance.
+* Fixed: Minor bugs and performance improvements.
+
 = 1.4.0 =
  
 * Added dedicated Logs viewer in Settings with searchable DataTable and per-entry context viewer
@@ -150,6 +157,10 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Upgrade Notice ==
 
+= 1.4.1 =
+
+This release adds an optional admin consent notice, improves compatibility and stability, and includes several bug fixes and code quality improvements. Updating is recommended.
+
 = 1.4.0 =
  
 This update fixes enrollment email delivery issues and improves the email template editor. The Settings page has been reorganised into tabs. A WooCommerce setup checklist modal is now shown automatically if required account settings are not configured. Upgrade recommended for all users.
@@ -169,6 +180,15 @@ This plugin communicates with a Moodle LMS website configured by the site admini
 * Student enrollment requests
 
 This data is only transmitted when the administrator has configured Moodle integration and explicitly initiates synchronization or when a WooCommerce order triggers an enrollment. The Moodle site URL is entered by the administrator during plugin setup.
+
+**Optional: CourseTransit update service**
+
+After activation, CourseTransit displays an optional consent notice asking whether you'd like to share your administrator email address, website domain, administrator name, and WordPress, PHP, and CourseTransit version information with the CourseTransit service. This information is used to provide product updates, setup guidance, compatibility notices, and licensing communications.
+
+Nothing is shared unless you explicitly click **"Yes, I agree"**. If you choose **"Not now"** or dismiss the notice, no information is sent and the plugin continues to function normally.
+
+For more information, please see the CourseTransit Privacy Policy:
+https://justaddwater.in/privacy/
 
 == Development ==
 
