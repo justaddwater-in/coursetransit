@@ -73,12 +73,27 @@ class CoursesController extends BaseController
         );
 
         $sr = 1;
+        $draw = isset($_REQUEST['draw'])
+            ? intval($_REQUEST['draw'])
+            : 1;
 
-        $data = array_map(function ($row) use (&$sr) {
+        $recordsTotal = count($rows);
+        $recordsFiltered = $recordsTotal;
+
+        // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+        $orders = wc_get_orders([
+            'limit' => -1,
+            'status' => ['wc-processing', 'wc-completed'],
+            'return' => 'ids',
+        ]);
+
+        $data = array_map(function ($row) use (&$sr, $orders) {
 
             $product_id = (int) ($row['wc_product_id'] ?? 0);
 
-
+            $product = $product_id
+                ? wc_get_product($product_id)
+                : null;
             /* ----------------------------------------
              * PRICE
              * ------------------------------------- */
@@ -88,9 +103,6 @@ class CoursesController extends BaseController
             /* ---------------- PRICE ---------------- */
 
             if ($product_id) {
-
-
-                $product = wc_get_product($product_id);
 
                 if ($product) {
 
@@ -120,13 +132,6 @@ class CoursesController extends BaseController
             $enrolled_count = 0;
 
             if ($product_id) {
-
-                // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-                $orders = wc_get_orders([
-                    'limit' => -1,
-                    'status' => ['wc-processing', 'wc-completed'],
-                    'return' => 'ids',
-                ]);
 
                 foreach ($orders as $order_id) {
 
@@ -178,8 +183,6 @@ class CoursesController extends BaseController
             $status = '<span class="badge badge-light">—</span>';
 
             if ($product_id) {
-
-                $product = wc_get_product($product_id);
 
                 if ($product) {
 
@@ -238,23 +241,6 @@ class CoursesController extends BaseController
                     Sync
                 </button>
             ';
-
-            /* Details */
-            //     $actions[] = '
-            //     <button
-            //         class="button button-small view-activities"
-            //         data-id="' . intval($row['id']) . '"
-            //         style="
-            //             border-radius:4px;
-            //             padding:2px 10px;
-            //             display:flex;
-            //             align-items:center;
-            //             gap:4px;
-            //         ">
-            //         <span class="material-icons" style="font-size:16px;">list_alt</span>
-            //         Details
-            //     </button>
-            // ';
 
             /* WooCommerce product actions */
             if ($product_id) {
@@ -318,13 +304,7 @@ class CoursesController extends BaseController
 
                 'enrolled_count' => $enrolled_count,
 
-                'visible' => (function () use ($product_id) {
-
-                    if (!$product_id) {
-                        return '<span class="badge badge-light">—</span>';
-                    }
-
-                    $product = wc_get_product($product_id);
+                'visible' => (function () use ($product) {
 
                     if (!$product) {
                         return '<span class="badge badge-light">—</span>';
@@ -523,7 +503,7 @@ class CoursesController extends BaseController
 
                 $enrollment_period = get_post_meta(
                     $course['wc_product_id'],
-                    '_course_access_days',
+                    '_coursetransit_enrollment_period',
                     true
                 );
 

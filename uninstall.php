@@ -12,6 +12,8 @@ global $wpdb;
 delete_option('coursetransit_settings');
 delete_option('coursetransit_db_version');
 delete_option('coursetransit_email_templates');
+delete_option('coursetransit_install_consent');
+delete_option('coursetransit_install_consent_snooze_until');
 
 /**
  * Remove custom tables

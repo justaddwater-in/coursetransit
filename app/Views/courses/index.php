@@ -16,8 +16,12 @@ if (!defined('ABSPATH')) {
     </div>
     <div class="col-6 d-flex align-items-center justify-content-sm-end justify-content-center">
         <div class="d-flex gap-2" role="group" aria-label="Page actions">
+            <button type="button" id="coursetransit-import-courses" class="button button-secondary mr-2">
+                Select &amp; Sync Courses
+                <span class="ct-pro-badge">PRO</span>
+            </button>
             <button type="button" id="coursetransit-sync-courses" class="button button-secondary">
-                Sync Courses
+                Sync All Courses
             </button>
 
         </div>

@@ -3,7 +3,7 @@
  * Plugin Name: CourseTransit
  * Plugin URI: https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/
  * Description: A WooCommerce integration for Moodle that syncs courses and helps manage online course sales from WordPress.
- * Version: 1.4.0
+ * Version: 1.4.1
  * Author: JustAddWater
  * Author URI: https://justaddwater.in/
  * License: GPLv3 or later
@@ -23,20 +23,12 @@ if (!defined('COURSETRANSIT_FILE')) {
     define('COURSETRANSIT_FILE', __FILE__);
 }
 
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    require_once __DIR__ . '/vendor/autoload.php';
-} else {
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-        error_log('CourseTransit: vendor/autoload.php missing');
-    }
-}
 
 // Constants
 define('COURSETRANSIT_PATH', plugin_dir_path(__FILE__));
 define('COURSETRANSIT_URL', plugin_dir_url(__FILE__));
 define('COURSETRANSIT_ASSETS_URL', plugin_dir_url(__FILE__) . 'assets/');
-define('COURSETRANSIT_VERSION', '1.4.0');
+define('COURSETRANSIT_VERSION', '1.4.1');
 
 
 /**
@@ -102,13 +94,23 @@ add_action('plugins_loaded', function () {
 }, 1);
 
 use CourseTransit\Installer;
+use CourseTransit\Services\InstallWebhook;
 
 /**
  * Activation hook
  */
 register_activation_hook(__FILE__, function () {
+
     ob_start();
+
     Installer::run();
+
+    if (get_option('coursetransit_install_consent', false) === false) {
+        add_option('coursetransit_install_consent', 'pending', '', false);
+    }
+
+    delete_option('coursetransit_install_consent_snooze_until');
+
     ob_end_clean();
 });
 

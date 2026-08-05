@@ -42,7 +42,8 @@ if (!defined('ABSPATH')) {
         <ul class="nav flex-column">
 
             <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('dashboard.index')); ?>" style="text-decoration:none;"
+                <a class="nav-link <?php echo esc_attr(Url::active('dashboard.index')); ?>"
+                    style="text-decoration:none;"
                     href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=dashboard.index')); ?>">
                     <i class="material-icons">dashboard</i>
                     <span>Dashboard</span>
@@ -58,7 +59,8 @@ if (!defined('ABSPATH')) {
             </li>
 
             <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('instructors.index')); ?>" style="text-decoration:none;"
+                <a class="nav-link <?php echo esc_attr(Url::active('instructors.index')); ?>"
+                    style="text-decoration:none;"
                     href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=instructors.index')); ?>">
                     <i class="material-icons">person</i>
                     <span>Instructors</span>
@@ -109,7 +111,7 @@ if (!defined('ABSPATH')) {
 
             <li class="nav-item">
                 <a class="nav-link d-flex align-items-center" style="text-decoration:none;" target="_blank"
-                    href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration">
+                    href="https://justaddwater.in/documentation/coursetransit-guided-setup/">
                     <i class="material-icons">auto_fix_high</i>
                     <span>Guided Setup</span>
                 </a>
@@ -122,15 +124,22 @@ if (!defined('ABSPATH')) {
                     <span>Help Center</span>
                 </a>
             </li>
-            <!-- <li class="nav-item">
-                <a class="nav-link d-flex align-items-center" href="<?php echo esc_url(admin_url()); ?>">
-                    <i class="material-icons">arrow_back</i>
-
-                    <span>
-                        WordPress Admin
-                    </span>
+            <li class="nav-item">
+                <a class="nav-link d-flex align-items-center" style="text-decoration:none;" target="_blank"
+                    href="https://wordpress.org/support/plugin/coursetransit/reviews/">
+                    <i class="material-icons">star_rate</i>
+                    <span>Leave Us a Review</span>
                 </a>
-            </li> -->
+            </li>
+
+            <li class="nav-item">
+            <a class="nav-link d-flex align-items-center" target="_blank"
+                href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing"
+                style="text-decoration:none; color: #4f46e5; font-weight: 600;">
+                <i class="material-icons" style="color: #4f46e5;">rocket_launch</i>
+                <span>Upgrade Now</span>
+            </a>
+        </li>
         </ul>
     </div>
 

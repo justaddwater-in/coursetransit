@@ -147,10 +147,10 @@ class CourseSyncService
             return; // stop execution
         }
 
-        self::processCourse($client, $course);
+        self::processCourse($client, $course, $course);
     }
 
-    protected static function processCourse(MoodleClient $client, array $course): string
+    protected static function processCourse(MoodleClient $client, array $course, ?array $courseDetails = null): string
     {
         if ((int) $course['id'] === 1) {
             return 'skipped';
@@ -284,7 +284,7 @@ class CourseSyncService
 
                 if ($product) {
                     $product->set_status('draft');
-                    $product->set_catalog_visibility('visible');
+                    $product->set_catalog_visibility('hidden');
                     $product->save();
                 }
 
@@ -369,7 +369,7 @@ class CourseSyncService
 
         $wpImageUrl = null;
 
-        $courseDetails = $client->fetchCourseById($course['id']);
+        $courseDetails = $courseDetails ?? $client->fetchCourseById($course['id']);
 
         /* ===============================
          * COURSE CATEGORY SYNC
@@ -381,7 +381,17 @@ class CourseSyncService
             ?? ''
         ));
 
-        if ($moodle_category !== '') {
+        if (
+            $moodle_category !== ''
+            && $category_sync !== 'disabled'
+            && (
+                $category_sync === 'all'
+                || (
+                    $category_sync === 'new'
+                    && !$product_already_exists
+                )
+            )
+        ) {
 
             $term = term_exists($moodle_category, 'product_cat');
 
@@ -816,25 +826,42 @@ class CourseSyncService
         | Fetch Courses
         |--------------------------------------------------------------------------
         */
-        try {
+        $transient_key = 'coursetransit_sync_courses_cache';
 
-            $courses = $client->fetchCourses();
+        if ($offset === 0) {
 
-        } catch (\Throwable $e) {
+            try {
 
-            throw new \Exception(
-                'Unable to connect to Moodle. Please verify your Moodle URL and Token.'
-            );
+                $courses = $client->fetchCourses();
+
+            } catch (\Throwable $e) {
+
+                throw new \Exception(
+                    'Unable to connect to Moodle. Please verify your Moodle URL and Token.'
+                );
+            }
+
+            if (!is_array($courses)) {
+                throw new \Exception(
+                    'Invalid response received from Moodle.'
+                );
+            }
+
+            $courses = array_filter($courses, fn($c) => $c['id'] != 1);
+            $courses = array_values($courses);
+
+            set_transient($transient_key, $courses, 30 * MINUTE_IN_SECONDS);
+
+        } else {
+
+            $courses = get_transient($transient_key);
+
+            if (!is_array($courses)) {
+                throw new \Exception(
+                    'Sync session expired or was reset. Please start the sync again.'
+                );
+            }
         }
-
-        if (!is_array($courses)) {
-            throw new \Exception(
-                'Invalid response received from Moodle.'
-            );
-        }
-
-        $courses = array_filter($courses, fn($c) => $c['id'] != 1);
-        $courses = array_values($courses);
 
         $total = count($courses);
 
@@ -861,11 +888,17 @@ class CourseSyncService
             $processed++;
         }
 
+        $done = ($offset + $processed) >= $total;
+
+        if ($done) {
+            delete_transient($transient_key);
+        }
+
         return [
             'total' => $total,
             'processed' => $offset + $processed,
             'next_offset' => $offset + $limit,
-            'done' => ($offset + $processed) >= $total,
+            'done' => $done,
             'init' => false
         ];
     }
