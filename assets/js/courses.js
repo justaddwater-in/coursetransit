@@ -506,6 +506,18 @@ jQuery(function ($) {
             .css('transform', 'translateX(100%)');
     });
 
+    // IMPORT MODAL SLIDE IN
+    $('#coursetransitImportModal').on('shown.bs.modal', function () {
+        $(this).find('.modal-dialog')
+            .css('transform', 'translateX(0)');
+    });
+
+    // IMPORT MODAL SLIDE OUT
+    $('#coursetransitImportModal').on('hide.bs.modal', function () {
+        $(this).find('.modal-dialog')
+            .css('transform', 'translateX(100%)');
+    });
+
     // QUICK EDIT 
     $(document).on('click', '.quick-edit-course', function () {
 
@@ -691,7 +703,221 @@ jQuery(function ($) {
         }
     });
 
-    
+
+    /* ================================
+     * Select & Sync Courses (Demo)
+     * ================================ */
+
+    $(document).on('click', '#coursetransit-import-courses', function (e) {
+
+        e.preventDefault();
+
+        $('#coursetransitImportModal').modal('show');
+
+        $('#import-loading').show();
+        $('#import-content').addClass('d-none');
+
+        setTimeout(function () {
+            renderDemoCourses();
+        }, 600);
+
+    });
+
+
+    function renderDemoCourses() {
+
+        const courses = [
+            {
+                id: 101,
+                fullname: 'WordPress Development',
+                shortname: 'WP-101',
+                visible: true
+            },
+            {
+                id: 102,
+                fullname: 'React Fundamentals',
+                shortname: 'REACT-201',
+                visible: true
+            },
+            {
+                id: 103,
+                fullname: 'Python Programming',
+                shortname: 'PY-101',
+                visible: true
+            },
+            {
+                id: 104,
+                fullname: 'UI/UX Design Bootcamp',
+                shortname: 'UX-301',
+                visible: false
+            },
+            {
+                id: 105,
+                fullname: 'Digital Marketing',
+                shortname: 'DM-101',
+                visible: true
+            },
+            {
+                id: 106,
+                fullname: 'Data Science Essentials',
+                shortname: 'DS-201',
+                visible: true
+            },
+            {
+                id: 107,
+                fullname: 'Project Management',
+                shortname: 'PM-101',
+                visible: true
+            },
+            {
+                id: 108,
+                fullname: 'Artificial Intelligence Basics',
+                shortname: 'AI-100',
+                visible: false
+            }
+        ];
+
+        let html = '';
+
+        courses.forEach(course => {
+
+            html += `
+            <label style="
+                display:block;
+                border:1px solid #e5e7eb;
+                border-radius:10px;
+                padding:12px;
+                margin-bottom:10px;
+                cursor:pointer;
+                transition:all .2s;
+            " class="import-course-card">
+
+                <div style="display:flex;align-items:center;gap:12px;">
+
+                    <input
+                        type="checkbox"
+                        class="import-course"
+                        value="${course.id}">
+
+                    <div style="flex:1;">
+
+                        <div style="font-weight:600;font-size:14px;">
+                            ${course.fullname}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            color:#6b7280;
+                            margin-top:2px;
+                        ">
+                            ${course.shortname}
+                        </div>
+
+                        <div style="
+                            margin-top:6px;
+                            display:flex;
+                            gap:8px;
+                        ">
+
+                            <span style="
+                                font-size:11px;
+                                padding:2px 8px;
+                                background:#e5e7eb;
+                                border-radius:6px;
+                            ">
+                                ${course.visible ? 'Visible' : 'Hidden'}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </label>
+        `;
+
+        });
+
+        $('#import-loading').hide();
+        $('#import-courses-list').html(html);
+        $('#import-content').removeClass('d-none');
+
+    }
+
+
+    /* Select All */
+
+    $(document).on('change', '#import-select-all', function () {
+
+        $('.import-course').prop('checked', this.checked);
+
+    });
+
+    $(document).on('click', '#import-selected-courses', function () {
+
+        let selected = [];
+
+        $('.import-course:checked').each(function () {
+            selected.push($(this).val());
+        });
+
+        if (!selected.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'No Courses Selected',
+                text: 'Please select at least one course.'
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Select & Sync Courses',
+            html: `
+            <div style="text-align:left;line-height:1.7;margin-top:10px;">
+
+                <p>
+                    You're viewing an interactive preview of the
+                    <strong>Select & Sync Courses</strong> feature.
+                </p>
+
+                <p style="margin-bottom:10px;">
+                    Upgrade to <strong>CourseTransit Pro</strong> to:
+                </p>
+
+                <ul style="padding-left:20px;margin:0;">
+                    <li>Sync only selected Moodle courses</li>
+                    <li>Skip unwanted courses</li>
+                    <li>Reduce synchronization time</li>
+                    <li>Improve performance on large Moodle sites</li>
+                </ul>
+
+            </div>
+        `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'button button-primary px-4',
+                cancelButton: 'button button-secondary mx-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                // TODO: Replace with your pricing page
+                window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+
+            }
+
+        });
+
+    });
+
 });
 
 

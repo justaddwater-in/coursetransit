@@ -137,9 +137,12 @@ $coursetransit_settings = $settings ?? [];
 
                             <label class="ct-setting-label">
                                 Default Enrollment Period
-                                <span class="ct-setting-help"
-                                    title="Sets the default enrollment duration for newly synced Moodle courses. Individual courses can override this value.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Sets the default enrollment duration for newly synced Moodle courses. Individual
+                                        courses can override this value.
+                                    </span>
                                 </span>
                             </label>
 
@@ -160,9 +163,11 @@ $coursetransit_settings = $settings ?? [];
                         <div class="col-lg-6 col-md-12">
                             <label class="ct-setting-label">
                                 Product Status
-                                <span class="ct-setting-help"
-                                    title="Choose the WooCommerce product status assigned when new courses are created.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Choose the WooCommerce product status assigned when new courses are created.
+                                    </span>
                                 </span>
                             </label>
 
@@ -188,9 +193,12 @@ $coursetransit_settings = $settings ?? [];
                         <div class="col-lg-6 col-md-12">
                             <label class="ct-setting-label">
                                 Product Content Sync
-                                <span class="ct-setting-help"
-                                    title="Controls whether course titles and descriptions are updated during future synchronizations.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Controls whether product titles, descriptions, and short descriptions are
+                                        synchronized during future course synchronizations.
+                                    </span>
                                 </span>
                             </label>
 
@@ -204,10 +212,6 @@ $coursetransit_settings = $settings ?? [];
                                     Sync Only During Product Creation
                                 </option>
 
-                                <option value="disabled">
-                                    Disable Product Content Sync
-                                </option>
-
                             </select>
 
                         </div>
@@ -216,9 +220,12 @@ $coursetransit_settings = $settings ?? [];
                         <div class="col-lg-6 col-md-12">
                             <label class="ct-setting-label">
                                 Curriculum & Activities Sync
-                                <span class="ct-setting-help"
-                                    title="Synchronizes Moodle sections, lessons, activities, and resources into the linked WooCommerce product.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Synchronizes Moodle sections, lessons, activities, and resources into the linked
+                                        WooCommerce product.
+                                    </span>
                                 </span>
                             </label>
 
@@ -244,9 +251,12 @@ $coursetransit_settings = $settings ?? [];
                         <div class="col-lg-6 col-md-12">
                             <label class="ct-setting-label">
                                 Category Sync
-                                <span class="ct-setting-help"
-                                    title="Automatically creates and updates WooCommerce product categories based on Moodle course categories.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Automatically creates and updates WooCommerce product categories based on Moodle
+                                        course categories.
+                                    </span>
                                 </span>
                             </label>
                             <select id="cts-category-sync" class="form-control coursetransit-sync-control">
@@ -271,9 +281,11 @@ $coursetransit_settings = $settings ?? [];
                         <div class="col-lg-6 col-md-12">
                             <label class="ct-setting-label">
                                 Course Images
-                                <span class="ct-setting-help"
-                                    title="Choose whether CourseTransit should import and update featured images from Moodle.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Controls how featured images are imported and updated from Moodle courses.
+                                    </span>
                                 </span>
                             </label>
 
@@ -304,9 +316,12 @@ $coursetransit_settings = $settings ?? [];
 
                             <label class="ct-setting-label">
                                 Missing Moodle Courses
-                                <span class="ct-setting-help"
-                                    title="Determines what happens to WooCommerce products when their linked Moodle course no longer exists.">
+                                <span class="ct-setting-help">
                                     <i class="material-icons" style="font-size:14px;">info</i>
+                                    <span class="ct-tooltip">
+                                        Choose what happens to WooCommerce products when their linked Moodle course no
+                                        longer exists.
+                                    </span>
                                 </span>
                             </label>
 
@@ -363,8 +378,8 @@ $coursetransit_settings = $settings ?? [];
             </p>
 
             <p>
-                <a href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing" class="button button-primary" target="_blank"
-                    rel="noopener noreferrer">
+                <a href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing"
+                    class="button button-primary" target="_blank" rel="noopener noreferrer">
                     Upgrade to CourseTransit Pro
                 </a>
             </p>

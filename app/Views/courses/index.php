@@ -375,3 +375,74 @@ if (!defined('ABSPATH')) {
         </div>
     </div>
 </div>
+
+<!-- IMPORT MODAL -->
+<div class="modal fade" id="coursetransitImportModal" tabindex="-1" role="dialog" aria-hidden="true"
+    style="pointer-events:auto;">
+
+    <div class="modal-dialog" style="
+            position:fixed;
+            top:0;
+            right:0;
+            margin:0;
+            height:100vh;
+            width:460px;
+            max-width:100%;
+            transform:translateX(100%);
+            transition:transform .3s ease-out;
+         ">
+
+        <div class="modal-content" style="height:100%;border-radius:0;border-left:1px solid #e5e7eb;">
+
+            <!-- HEADER -->
+            <div class="modal-header" style="border-bottom:1px solid #e5e7eb;">
+                <h5 class="modal-title">Select & Sync Courses</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body" style="overflow-y:auto;padding:20px;">
+
+                <!-- LOADING -->
+                <div id="import-loading" style="text-align:center;padding:40px 0;">
+                    Loading…
+                </div>
+
+                <!-- CONTENT -->
+                <div id="import-content" class="d-none">
+
+                    <!-- SELECT ALL -->
+                    <div style="margin-bottom:12px;">
+                        <label>
+                            <input type="checkbox" id="import-select-all"> Select All
+                        </label>
+                    </div>
+
+                    <!-- COURSE LIST -->
+                    <div id="import-courses-list"></div>
+
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer" style="
+                    border-top:1px solid #e5e7eb;
+                    display:flex;
+                    justify-content:flex-end;
+                    gap:10px;
+                ">
+
+                <button type="button" class="button button-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <button type="button" id="import-selected-courses" class="button button-primary">
+                    Sync Selected
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>

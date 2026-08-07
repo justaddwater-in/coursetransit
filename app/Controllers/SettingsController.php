@@ -258,19 +258,15 @@ class SettingsController extends BaseController
         }
 
         // Save settings.
+        // Preserve existing settings.
+        $settings = get_option('coursetransit_settings', []);
+
+        $settings['moodle_url'] = sanitize_text_field($moodleUrl);
+        $settings['moodle_token'] = sanitize_text_field($moodleToken);
+
         update_option(
             'coursetransit_settings',
-            [
-                'moodle_url' =>
-                    sanitize_text_field(
-                        $moodleUrl
-                    ),
-
-                'moodle_token' =>
-                    sanitize_text_field(
-                        $moodleToken
-                    ),
-            ]
+            $settings
         );
 
         Logger::log(
