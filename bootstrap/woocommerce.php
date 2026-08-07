@@ -1,6 +1,39 @@
 <?php
 defined('ABSPATH') || exit;
 
+/**
+ * Detect manual status changes on CourseTransit-linked products.
+ *
+ * Fires on every WC product save. If the save is NOT coming from
+ * CourseSyncService itself (which sets CourseSyncService::isApplyingStatus()
+ * around its own status-changing saves), and the product is one CourseTransit
+ * created, we flip it out of "sync-managed" status. From that point on,
+ * CourseSyncService will leave this product's status alone on future syncs,
+ * so a manual change made here (wp-admin edit screen, the plugin's own
+ * Quick Edit modal, WooCommerce REST API, etc) always sticks.
+ */
+add_action('woocommerce_before_product_object_save', function ($product) {
+
+    if (\CourseTransit\Services\CourseSyncService::isApplyingStatus()) {
+        // This save is CourseTransit re-applying the Product Status
+        // setting itself — not a manual change. Leave the flag alone.
+        return;
+    }
+
+    $product_id = $product->get_id();
+
+    if (!$product_id) {
+        return;
+    }
+
+    if (!get_post_meta($product_id, '_coursetransit_moodle_id', true)) {
+        // Not a CourseTransit-linked product.
+        return;
+    }
+
+    update_post_meta($product_id, '_coursetransit_status_managed', 'no');
+});
+
 // Always sell courses individually
 add_filter('woocommerce_is_sold_individually', '__return_true');
 
@@ -497,5 +530,3 @@ add_filter('woocommerce_payment_complete_order_status', function ($status, $orde
 //     unset($tabs['reviews']);
 //     return $tabs;
 // }
-
-

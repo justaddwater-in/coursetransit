@@ -8,6 +8,23 @@ use CourseTransit\Support\Logger;
 
 class CourseSyncService
 {
+    /**
+     * Set to true only while CourseSyncService itself is calling
+     * $product->save() to apply the "Product Status" setting. The
+     * woocommerce_before_product_object_save hook (see bootstrap/woocommerce.php)
+     * checks this flag to tell CourseTransit's own status changes apart
+     * from a manual status change made by an admin (wp-admin edit screen,
+     * Quick Edit modal, WooCommerce REST API, etc). Only saves made while
+     * this is false are treated as "manual" and flip the product out of
+     * sync-managed status.
+     */
+    protected static bool $applying_status = false;
+
+    public static function isApplyingStatus(): bool
+    {
+        return self::$applying_status;
+    }
+
     public static function run(): array
     {
         $settings = get_option('coursetransit_settings', []);
@@ -219,6 +236,9 @@ class CourseSyncService
 
         $product_already_exists = !empty($product_id);
 
+        // Tracks whether we created the product in THIS call.
+        $just_created = false;
+
         if (!$product_id) {
 
             $product_status = sanitize_text_field(
@@ -234,7 +254,16 @@ class CourseSyncService
             $product->set_downloadable(true);
             $product->set_catalog_visibility('hidden');
 
+            self::$applying_status = true;
             $product_id = $product->save();
+            self::$applying_status = false;
+
+            // Mark this product as sync-managed so future syncs are
+            // allowed to re-apply the "Product Status" setting to it,
+            // until an admin manually changes its status themselves.
+            update_post_meta($product_id, '_coursetransit_status_managed', 'yes');
+
+            $just_created = true;
         }
 
         /* ==== AUTO RESTORE ==== */
@@ -252,9 +281,11 @@ class CourseSyncService
             $product = wc_get_product($product_id);
 
             if ($product) {
+                self::$applying_status = true;
                 $product->set_status('publish');
                 $product->set_catalog_visibility('hidden');
                 $product->save();
+                self::$applying_status = false;
             }
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -274,59 +305,47 @@ class CourseSyncService
             );
         }
 
-        /* ==== VISIBILITY SYNC ==== */
+        /* ==== RE-APPLY PRODUCT STATUS ON RE-SYNC ====
+         * Only runs for products that already existed before this call.
+         * Re-applies the "Product Status" setting, but only if this
+         * product is still "sync-managed" — i.e. no admin has manually
+         * changed its status since CourseTransit last set it. The
+         * woocommerce_before_product_object_save hook (bootstrap/woocommerce.php)
+         * flips a product out of "sync-managed" the moment someone changes
+         * its status outside of this service, so manual changes always win.
+         */
 
-        if (isset($course['visible'])) {
+        if (!$just_created) {
 
-            $product = wc_get_product($product_id);
+            $status_managed = get_post_meta($product_id, '_coursetransit_status_managed', true);
 
-            if ((int) $course['visible'] === 0) {
-
-                if ($product) {
-                    $product->set_status('draft');
-                    $product->set_catalog_visibility('hidden');
-                    $product->save();
-                }
-
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-                $wpdb->update(
-                    $table,
-                    ['visible' => 0],
-                    ['moodle_id' => $course['id']]
-                );
-
-                Logger::warning(
-                    'Course hidden due to Moodle visibility',
-                    [
-                        'module' => 'course_sync',
-                        'moodle_course_id' => $course['id'],
-                        'visibility' => 0,
-                        'product_id' => $product_id,
-                    ]
-                );
+            // Products synced before this feature existed have no meta yet;
+            // treat them as still sync-managed rather than silently opting
+            // them out.
+            if ($status_managed === '') {
+                $status_managed = 'yes';
             }
 
-            if ((int) $course['visible'] === 1) {
+            if ($status_managed === 'yes') {
 
-                if ($product && $product->get_status() === 'draft') {
-
-                    $product->set_status('publish');
-
-                    $product->set_catalog_visibility(
-                        (int) ($course['visible'] ?? 1) === 1
-                        ? 'visible'
-                        : 'hidden'
-                    );
-
-                    $product->save();
-                }
-
-                // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-                $wpdb->update(
-                    $table,
-                    ['visible' => 1],
-                    ['moodle_id' => $course['id']]
+                $desired_status = sanitize_text_field(
+                    $settings['product_status'] ?? 'publish'
                 );
+
+                $product = wc_get_product($product_id);
+
+                if ($product && $product->get_status() !== $desired_status) {
+
+                    self::$applying_status = true;
+                    $product->set_status($desired_status);
+                    $product->save();
+                    self::$applying_status = false;
+
+                    // Re-affirm managed status (the save above would
+                    // otherwise be indistinguishable from a manual one).
+                    update_post_meta($product_id, '_coursetransit_status_managed', 'yes');
+
+                }
             }
         }
 
@@ -343,18 +362,12 @@ class CourseSyncService
         $post_content = $course['summary'] ?? '';
 
         if (
-            $product_content_sync !== 'disabled' &&
-            (
-                !$product_already_exists ||
-                $product_content_sync === 'all'
-            )
+            !$product_already_exists ||
+            $product_content_sync === 'all'
         ) {
-
             wp_update_post([
                 'ID' => $product_id,
-                'post_title' => wp_strip_all_tags(
-                    $course['fullname'] ?? 'Untitled Course'
-                ),
+                'post_title' => wp_strip_all_tags($course['fullname']),
                 'post_content' => wp_kses_post($post_content),
                 'post_excerpt' => wp_trim_words(
                     wp_strip_all_tags($post_content),
@@ -505,14 +518,6 @@ class CourseSyncService
         ) {
 
             if ($sync_curriculum === 'disabled') {
-
-                Logger::debug(
-                    'Curriculum synchronization disabled',
-                    [
-                        'module' => 'course_sync',
-                        'moodle_course_id' => $course['id'],
-                    ]
-                );
 
             }
 
@@ -668,9 +673,11 @@ class CourseSyncService
                     // Default: mark draft
                     else {
 
+                        self::$applying_status = true;
                         $product->set_status('draft');
                         $product->set_catalog_visibility('hidden');
                         $product->save();
+                        self::$applying_status = false;
 
                         Logger::warning(
                             'Missing Moodle course marked as draft',
@@ -774,9 +781,11 @@ class CourseSyncService
                 // Default: mark draft
                 else {
 
+                    self::$applying_status = true;
                     $product->set_status('draft');
                     $product->set_catalog_visibility('hidden');
                     $product->save();
+                    self::$applying_status = false;
 
                     Logger::warning(
                         'Missing Moodle course marked as draft',
@@ -891,6 +900,14 @@ class CourseSyncService
         $done = ($offset + $processed) >= $total;
 
         if ($done) {
+
+            // Apply the "Missing Moodle Courses" setting now that every
+            // course from this sync run has been processed. Without this,
+            // courses removed/hidden in Moodle are never detected because
+            // this batched sync path (used by the Sync Now button) is the
+            // only one that runs in the free plugin.
+            self::markMissingCourses(array_column($courses, 'id'));
+
             delete_transient($transient_key);
         }
 

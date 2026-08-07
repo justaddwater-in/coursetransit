@@ -843,14 +843,14 @@ select.form-control:not([size]):not([multiple]) {
     transition: .2s;
     border-radius: 50%;
     box-shadow:
-        0 1px 3px rgba(0,0,0,.2);
+        0 1px 3px rgba(0, 0, 0, .2);
 }
 
-.cts-switch input:checked + .cts-slider {
+.cts-switch input:checked+.cts-slider {
     background: #2271b1;
 }
 
-.cts-switch input:checked + .cts-slider:before {
+.cts-switch input:checked+.cts-slider:before {
     transform: translateX(22px);
 }
 
@@ -875,43 +875,97 @@ select.form-control:not([size]):not([multiple]) {
 /* ===============================
    SETTINGS TAB
    =============================== */
-.ct-setting-label{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    font-size:14px;
-    color:#6b7280;
-    margin-bottom:6px;
+.ct-setting-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 6px;
 }
 
-.ct-setting-help{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    width:16px;
-    height:16px;
-    border-radius:50%;
-    background:#eef2f7;
-    color:#6b7280;
-    font-size:19px;
-    cursor:help;
-    transition:.2s;
+.ct-setting-help {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #eef2f7;
+    color: #6b7280;
+    font-size: 19px;
+    cursor: help;
+    transition: .2s;
 }
 
-.ct-pro-badge{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    margin-left:6px;
-    padding:2px 6px;
-    min-width:28px;
-    height:18px;
-    border-radius:5px;
-    background:#ffb300;
-    color:#111;
-    font-size:10px;
-    font-weight:700;
-    line-height:1;
-    text-transform:uppercase;
-    vertical-align:middle;
+.ct-pro-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    padding: 2px 6px;
+    min-width: 28px;
+    height: 18px;
+    border-radius: 5px;
+    background: #ffb300;
+    color: #111;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.ct-setting-help {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 6px;
+    cursor: pointer;
+    color: #6b7280;
+}
+
+.ct-setting-help i {
+    font-size: 14px;
+}
+
+.ct-tooltip {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 240px;
+    max-width: 300px;
+    padding: 10px 12px;
+    background: #1f2937;
+    color: #fff;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+    white-space: normal;
+    text-align: left;
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .2s ease, visibility .2s ease;
+    z-index: 99999;
+}
+
+.ct-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #1f2937;
+}
+
+.ct-setting-help:hover .ct-tooltip,
+.ct-setting-help:focus-within .ct-tooltip {
+    opacity: 1;
+    visibility: visible;
 }
