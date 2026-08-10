@@ -4,7 +4,7 @@ Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -123,7 +123,13 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Changelog ==
 
+= 1.4.2 =
+
+* Added: Demo Mode notice to the Select & Sync Courses screen.
+* Improved: Clarified that displayed courses are dummy data provided for demonstration and testing purposes.
+
 = 1.4.1 =
+
 * Added: Optional admin consent notice for receiving setup tips, changelog notifications, and license updates.
 * Added: Consent preferences are only saved after an explicit admin action.
 * Improved: Plugin stability and compatibility with the latest WordPress version.
@@ -156,6 +162,10 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 * Activity logging and connection testing
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+
+This release adds a Demo Mode notice to the Select & Sync Courses screen, making it clear that the displayed courses are dummy data intended for demonstration and testing purposes. Updating is recommended.
 
 = 1.4.1 =
 

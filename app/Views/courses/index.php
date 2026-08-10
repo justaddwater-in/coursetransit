@@ -408,9 +408,25 @@ if (!defined('ABSPATH')) {
                     Loading…
                 </div>
 
+
                 <!-- CONTENT -->
                 <div id="import-content" class="d-none">
 
+                    <!-- DEMO NOTICE -->
+                    <div style="
+                        background:#fff8e1;
+                        border:1px solid #f0c36d;
+                        border-radius:6px;
+                        padding:12px 14px;
+                        margin-bottom:16px;
+                        font-size:13px;
+                        color:#7a5a00;
+                        line-height:1.5;
+                    ">
+                        <strong style="color:#664d03;">Demo Mode:</strong>
+                        The courses displayed here are dummy data provided for demonstration purposes only.
+                        This allows you to experience and test the course selection and synchronization functionality.
+                    </div>
                     <!-- SELECT ALL -->
                     <div style="margin-bottom:12px;">
                         <label>
