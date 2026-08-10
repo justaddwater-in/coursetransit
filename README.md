@@ -253,7 +253,6 @@ coursetransit/
 ├── assets/
 ├── bootstrap/
 ├── languages/
-├── vendor/
 ├── coursetransit.php
 └── uninstall.php
 ```
@@ -345,10 +344,6 @@ The plugin follows WordPress coding standards and is actively being improved for
 * Sanitization/security improvements
 * Performance optimization
 
-## Composer
-
-Autoloading is handled using Composer and PSR-4 style class loading.
-
 ---
 
 # Frequently Asked Questions
@@ -405,14 +400,39 @@ Check:
 
 # Changelog
 
+## 1.4.1
+
+* Added: Optional admin consent notice for receiving setup tips, changelog notifications, and license updates.
+* Added: Consent preferences are only saved after an explicit admin action.
+* Improved: Plugin stability and compatibility with the latest WordPress version.
+* Improved: Code quality and WordPress Coding Standards compliance.
+* Fixed: Minor bugs and performance improvements.
+
+## 1.4.0
+
+* Added dedicated Logs viewer in Settings with searchable DataTable and per-entry context viewer
+* Added configurable log enable/disable toggle in Settings
+* Added WooCommerce setup checklist modal shown automatically when required account settings are not configured
+* Added default enrollment period selector in Settings (Sync tab)
+* Added individual course re-sync support
+* Fixed enrollment email template body not loading when switching between New User and Existing User templates
+* Fixed email template admin preview showing stub body instead of full default template
+* Improved enrollment email default template with richer HTML
+* Refactored dashboard view
+* Refactored Settings page into tabbed layout: General, Sync, and Logs
+* Refactored CourseSyncService with chunked sync support and improved single-course sync
+* Removed unused vendor folder and Composer dependencies
+
 ## 1.3.0
 
-* Improved WooCommerce integration
-* Bootstrap/admin UI improvements
-* Added cleanup and uninstall improvements
-* PHPCS and Plugin Check fixes
-* Improved logging and debugging workflow
-* General stability updates
+* Initial public release
+* Moodle course synchronization
+* WooCommerce product integration
+* Automatic student enrollment after purchase
+* Instructor management
+* Enrollment email template customization
+* Unified order and enrollment dashboard
+* Activity logging and connection testing
 
 ---
 
