@@ -3,7 +3,7 @@
  * Plugin Name: CourseTransit
  * Plugin URI: https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/
  * Description: A WooCommerce integration for Moodle that syncs courses and helps manage online course sales from WordPress.
- * Version: 1.4.2
+ * Version: 1.4.3
  * Author: JustAddWater
  * Author URI: https://justaddwater.in/
  * License: GPLv3 or later
@@ -28,7 +28,7 @@ if (!defined('COURSETRANSIT_FILE')) {
 define('COURSETRANSIT_PATH', plugin_dir_path(__FILE__));
 define('COURSETRANSIT_URL', plugin_dir_url(__FILE__));
 define('COURSETRANSIT_ASSETS_URL', plugin_dir_url(__FILE__) . 'assets/');
-define('COURSETRANSIT_VERSION', '1.4.2');
+define('COURSETRANSIT_VERSION', '1.4.3');
 
 
 /**

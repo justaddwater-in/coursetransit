@@ -72,7 +72,6 @@ add_action('woocommerce_thankyou', function ($order_id) {
     if ($order->get_status() === 'processing' && $order->get_total() == 0) {
         $order->update_status('completed', 'Auto-completed free course order');
     }
-
 }, 10);
 
 /**
@@ -98,6 +97,19 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
     $email = $order->get_billing_email();
     $first = $order->get_billing_first_name();
     $last = $order->get_billing_last_name();
+    $phone = $order->get_billing_phone();
+    $city = $order->get_billing_city();
+    $country = $order->get_billing_country();
+
+    $address_1 = $order->get_billing_address_1();
+    $address_2 = $order->get_billing_address_2();
+
+    $address = trim(
+        implode(', ', array_filter([
+            $address_1,
+            $address_2,
+        ]))
+    );
 
     foreach ($order->get_items() as $item) {
         $product_id = $item->get_product_id();
@@ -106,6 +118,10 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
             $email,
             $first,
             $last,
+            $phone,
+            $city,
+            $country,
+            $address,
             $product_id
         );
     }
@@ -113,7 +129,6 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
     // Mark order as enrolled
     $order->update_meta_data('_coursetransit_enrolled', 1);
     $order->save();
-
 }, 10, 1);
 
 
@@ -272,7 +287,7 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
                 WHERE m.course_id = %d",
                 $course_row_id
             )
-        );        
+        );
     }
 
     if (!empty($instructors)) {
@@ -281,19 +296,19 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
             'title' => 'Instructor',
             'priority' => 17,
             'callback' => function () use ($instructors) {
-                ?>
+?>
 
             <div style="padding:10px 0;">
 
                 <?php foreach ($instructors as $inst): ?>
 
                     <?php
-                        $instructor = $inst->name;
-                        $bio = $inst->bio;
-                        $title = $inst->headline;
-                        $avatar_url = $inst->avatar;
-                        $initial = strtoupper(substr($instructor, 0, 1));
-                        ?>
+                    $instructor = $inst->name;
+                    $bio = $inst->bio;
+                    $title = $inst->headline;
+                    $avatar_url = $inst->avatar;
+                    $initial = strtoupper(substr($instructor, 0, 1));
+                    ?>
 
                     <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;">
 
@@ -332,17 +347,17 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
 
                     <!-- Bio -->
                     <?php
-                        echo $bio
-                            ? wp_kses_post(wpautop($bio))
-                            : esc_html__('Instructor details will be updated soon.', 'coursetransit');
-                        ?>
+                    echo $bio
+                        ? wp_kses_post(wpautop($bio))
+                        : esc_html__('Instructor details will be updated soon.', 'coursetransit');
+                    ?>
 
 
                 <?php endforeach; ?>
 
             </div>
 
-            <?php
+    <?php
             }
         ];
     }
@@ -486,7 +501,7 @@ add_filter('the_content', function ($content) {
         </ul>
     </div>
 
-    <?php
+<?php
 
     $box = ob_get_clean();
 
@@ -520,7 +535,6 @@ add_filter('woocommerce_payment_complete_order_status', function ($status, $orde
 
     // Let Woo naturally mark it Completed
     return 'completed';
-
 }, 20, 3);
 
 /* Remove WooCommerce Reviews Tab */

@@ -400,6 +400,10 @@ Check:
 
 # Changelog
 
+## 1.4.3
+### Enhancement
+- Sync WooCommerce billing address to Moodle user profile
+
 ## 1.4.2
 
 * Added: Demo Mode notice on the Select & Sync Courses screen to explicitly indicate that listed courses are dummy data for demonstration and testing purposes only.

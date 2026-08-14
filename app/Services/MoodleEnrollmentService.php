@@ -7,7 +7,7 @@ use CourseTransit\Emails\Mailer;
 
 class MoodleEnrollmentService
 {
-    public static function enroll(string $email, string $first, string $last, int $product_id): void
+    public static function enroll(string $email, string $first, string $last, string $phone, string $city, string $country, string $address, int $product_id): void
     {
         global $wpdb;
 
@@ -60,6 +60,37 @@ class MoodleEnrollmentService
                 'user_id' => $user_id
             ]);
 
+            $user_update = [
+                'id' => $user_id,
+            ];
+
+            if (!empty($phone)) {
+                $user_update['phone1'] = trim($phone);
+            }
+
+            if (!empty($city)) {
+                $user_update['city'] = trim($city);
+            }
+
+            if (!empty($country)) {
+                $user_update['country'] = strtoupper(trim($country));
+            }
+
+            if (!empty($address)) {
+                $user_update['address'] = trim($address);
+            }
+
+            if (count($user_update) > 1) {
+                self::call(
+                    $moodle_url,
+                    $token,
+                    'core_user_update_users',
+                    [
+                        'users' => [$user_update]
+                    ]
+                );
+            }
+
         } else {
 
             // ---------------------------------
@@ -76,6 +107,10 @@ class MoodleEnrollmentService
                         'firstname' => $first ?: 'Student',
                         'lastname' => $last ?: 'User',
                         'auth' => 'manual',
+                        'phone1' => trim($phone),
+                        'city' => trim($city),
+                        'country' => strtoupper(trim($country)),
+                        'address' => trim($address),
                     ]
                 ]
             ]);
