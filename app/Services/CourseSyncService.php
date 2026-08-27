@@ -20,6 +20,8 @@ class CourseSyncService
      */
     protected static bool $applying_status = false;
 
+    protected static bool $filesystem_fallback_logged = false;
+
     public static function isApplyingStatus(): bool
     {
         return self::$applying_status;
@@ -814,7 +816,6 @@ class CourseSyncService
         |--------------------------------------------------------------------------
         */
         if (empty($moodle_url) || empty($moodle_token)) {
-
             throw new \Exception(
                 'CourseTransit is not connected to a Moodle LMS yet. Please configure and connect a valid Moodle LMS from Settings before syncing courses.'
             );
@@ -837,14 +838,21 @@ class CourseSyncService
         */
         $transient_key = 'coursetransit_sync_courses_cache';
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified in the controller.
+        $sync_id = sanitize_text_field(wp_unslash($_POST['sync_id'] ?? ''));
+
         if ($offset === 0) {
 
+            // Reuse an existing sync ID when the initialization request
+            // is repeated instead of creating another fallback file.
+            if ($sync_id === '') {
+                $sync_id = wp_generate_uuid4();
+                self::cleanupStaleCourseSyncFiles();
+            }
+
             try {
-
                 $courses = $client->fetchCourses();
-
             } catch (\Throwable $e) {
-
                 throw new \Exception(
                     'Unable to connect to Moodle. Please verify your Moodle URL and Token.'
                 );
@@ -856,14 +864,52 @@ class CourseSyncService
                 );
             }
 
-            $courses = array_filter($courses, fn($c) => $c['id'] != 1);
+            $courses = array_filter(
+                $courses,
+                fn($c) => $c['id'] != 1
+            );
+
             $courses = array_values($courses);
 
-            set_transient($transient_key, $courses, 30 * MINUTE_IN_SECONDS);
+            /*
+             * Keep the existing transient as the primary sync cache.
+             * The filesystem copy is an additional fallback for sites where
+             * the transient/object cache is cleared before the sync completes.
+             */
+            set_transient(
+                $transient_key,
+                $courses,
+                30 * MINUTE_IN_SECONDS
+            );
+
+            self::writeCourseSyncFile($sync_id, $courses);
 
         } else {
 
+            // Existing behavior remains first: use the transient if available.
             $courses = get_transient($transient_key);
+
+            // If the transient was cleared early, restore the same course list
+            // from the filesystem copy instead of restarting the Moodle fetch.
+            if (!is_array($courses) && $sync_id !== '') {
+                $courses = self::readCourseSyncFile($sync_id);
+
+                if (is_array($courses)) {
+                    if (!self::$filesystem_fallback_logged) {
+                        self::$filesystem_fallback_logged = true;
+                    }
+                } elseif (!self::$filesystem_fallback_logged) {
+                    Logger::warning(
+                        'Course sync filesystem fallback unavailable.',
+                        [
+                            'module' => 'course_sync',
+                            'sync_id' => $sync_id,
+                        ]
+                    );
+
+                    self::$filesystem_fallback_logged = true;
+                }
+            }
 
             if (!is_array($courses)) {
                 throw new \Exception(
@@ -876,15 +922,20 @@ class CourseSyncService
 
         if (
             $offset === 0 &&
-            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce already verified in controller.
-            empty(sanitize_text_field(wp_unslash($_POST['processed_once'] ?? '')))
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified in the controller.
+            empty(
+            sanitize_text_field(
+                wp_unslash($_POST['processed_once'] ?? '')
+            )
+        )
         ) {
             return [
                 'total' => $total,
                 'processed' => 0,
                 'next_offset' => 0,
                 'done' => false,
-                'init' => true
+                'init' => true,
+                'sync_id' => $sync_id,
             ];
         }
 
@@ -902,13 +953,12 @@ class CourseSyncService
         if ($done) {
 
             // Apply the "Missing Moodle Courses" setting now that every
-            // course from this sync run has been processed. Without this,
-            // courses removed/hidden in Moodle are never detected because
-            // this batched sync path (used by the Sync Now button) is the
-            // only one that runs in the free plugin.
+            // course from this sync run has been processed.
             self::markMissingCourses(array_column($courses, 'id'));
 
+            // Clean up both caches after the sync has completed.
             delete_transient($transient_key);
+            self::deleteCourseSyncFile($sync_id);
         }
 
         return [
@@ -916,7 +966,137 @@ class CourseSyncService
             'processed' => $offset + $processed,
             'next_offset' => $offset + $limit,
             'done' => $done,
-            'init' => false
+            'init' => false,
+            'sync_id' => $sync_id,
         ];
     }
+
+    /**
+     * Store the current full course list as a filesystem fallback.
+     *
+     * This is intentionally additive: the existing transient remains the
+     * primary cache. The file is only used if the transient disappears.
+     */
+    protected static function getCourseSyncFilePath(string $sync_id): string
+    {
+        $uploads = wp_upload_dir();
+
+        $directory = trailingslashit($uploads['basedir']) . 'coursetransit-sync';
+
+        if (!is_dir($directory)) {
+            wp_mkdir_p($directory);
+        }
+
+        $safe_id = preg_replace('/[^a-zA-Z0-9_-]/', '', $sync_id);
+
+        return trailingslashit($directory) . 'courses-' . $safe_id . '.json';
+    }
+
+    protected static function writeCourseSyncFile(string $sync_id, array $courses): void
+    {
+        if ($sync_id === '') {
+            return;
+        }
+
+        $file = self::getCourseSyncFilePath($sync_id);
+        $temp = $file . '.tmp';
+        $json = wp_json_encode($courses);
+
+        if ($json === false) {
+            Logger::warning(
+                'Unable to create filesystem course sync fallback.',
+                ['module' => 'course_sync']
+            );
+            return;
+        }
+
+        $written = file_put_contents($temp, $json, LOCK_EX);
+
+        if ($written === false) {
+            Logger::warning(
+                'Unable to write filesystem course sync fallback.',
+                ['module' => 'course_sync']
+            );
+            return;
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+
+        global $wp_filesystem;
+
+        if (!$wp_filesystem && !WP_Filesystem()) {
+            wp_delete_file($temp);
+
+            Logger::warning(
+                'Unable to initialize WordPress filesystem for course sync fallback.',
+                ['module' => 'course_sync']
+            );
+
+            return;
+        }
+
+        if (!$wp_filesystem->move($temp, $file, true)) {
+            wp_delete_file($temp);
+
+            Logger::warning(
+                'Unable to finalize filesystem course sync fallback.',
+                ['module' => 'course_sync']
+            );
+
+            return;
+        }
+    }
+
+    protected static function readCourseSyncFile(string $sync_id): ?array
+    {
+        if ($sync_id === '') {
+            return null;
+        }
+
+        $file = self::getCourseSyncFilePath($sync_id);
+
+        if (!is_readable($file)) {
+            return null;
+        }
+
+        $json = file_get_contents($file);
+
+        if ($json === false || $json === '') {
+            return null;
+        }
+
+        $courses = json_decode($json, true);
+
+        return is_array($courses) ? $courses : null;
+    }
+
+    protected static function deleteCourseSyncFile(string $sync_id): void
+    {
+        if ($sync_id === '') {
+            return;
+        }
+
+        $file = self::getCourseSyncFilePath($sync_id);
+
+        if (is_file($file)) {
+            wp_delete_file($file);
+        }
+    }
+
+    protected static function cleanupStaleCourseSyncFiles(): void
+    {
+        $uploads = wp_upload_dir();
+        $directory = trailingslashit($uploads['basedir']) . 'coursetransit-sync';
+
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach (glob($directory . '/courses-*.json') ?: [] as $file) {
+            if (is_file($file)) {
+                wp_delete_file($file);
+            }
+        }
+    }
+
 }

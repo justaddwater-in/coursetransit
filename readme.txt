@@ -2,9 +2,9 @@
 Contributors: justaddwater
 Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -123,6 +123,11 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Changelog ==
 
+= 1.4.4 =
+
+* Improved: Course synchronization reliability and overall plugin stability.
+* Fixed: Minor compatibility, security, and performance issues.
+
 = 1.4.3 =
 
 * Added: WooCommerce billing phone, city, country, and address synchronization to Moodle user profiles.
@@ -166,6 +171,10 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 * Activity logging and connection testing
 
 == Upgrade Notice ==
+
+= 1.4.4 =
+
+This release improves course synchronization reliability and overall plugin stability. It also includes minor compatibility, security, and performance improvements. Updating is recommended.
 
 = 1.4.3 =
 

@@ -31,13 +31,6 @@ class SettingsController extends BaseController
             ]);
         }
 
-        // Permission check.
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error([
-                'message' => 'Unauthorized',
-            ]);
-        }
-
         // Nonce check.
         if (
             !check_ajax_referer(
@@ -48,6 +41,13 @@ class SettingsController extends BaseController
         ) {
             wp_send_json_error([
                 'message' => 'Security check failed',
+            ]);
+        }
+
+        // Permission check.
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error([
+                'message' => 'Unauthorized',
             ]);
         }
 

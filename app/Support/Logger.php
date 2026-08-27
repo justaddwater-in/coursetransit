@@ -231,6 +231,9 @@ class Logger
             'bearer',
             'sesskey',
             'userprivateaccesskey',
+            'wstoken',
+            'license_key',
+            'licensekey',
         ];
 
         if (!is_array($data)) {

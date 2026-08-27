@@ -28,6 +28,7 @@ jQuery(function ($) {
 
             let offset = 0;
             const limit = 5;
+            let syncId = null;
 
             function syncBatch() {
 
@@ -35,6 +36,7 @@ jQuery(function ($) {
                     action: 'coursetransit_sync_courses',
                     offset: offset,
                     limit: limit,
+                    sync_id: syncId,
                     processed_once: window._sync_initialized ? 1 : 0,
                     _ajax_nonce: CourseTransitAjax.nonce
                 })
@@ -57,12 +59,17 @@ jQuery(function ($) {
 
                         const data = res.data;
 
+                        if (data.sync_id) {
+                            syncId = data.sync_id;
+                        }
+
                         if (data.init) {
                             Swal.update({
                                 title: `Syncing 0/${data.total}`
                             });
 
                             offset = data.next_offset;
+                            syncId = data.sync_id || syncId;
 
                             window._sync_initialized = true;
 

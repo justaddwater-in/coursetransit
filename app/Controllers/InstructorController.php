@@ -513,6 +513,13 @@ class InstructorController extends BaseController
     {
         check_ajax_referer('coursetransit_nonce');
 
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(
+                ['message' => 'Unauthorized'],
+                403
+            );
+        }
+
         global $wpdb;
         $table = esc_sql($wpdb->prefix . 'coursetransit_courses');
 

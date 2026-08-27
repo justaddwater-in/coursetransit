@@ -650,11 +650,11 @@ class CoursesController extends BaseController
 
     public function syncSingle()
     {
+        check_ajax_referer('coursetransit_nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Unauthorized'], 403);
         }
-
-        check_ajax_referer('coursetransit_nonce');
 
         $moodleId = intval($_POST['moodle_id'] ?? 0);
 
@@ -889,11 +889,11 @@ class CoursesController extends BaseController
 
     public function fetchMoodleCourses()
     {
+        check_ajax_referer('coursetransit_nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Unauthorized', 403);
         }
-
-        check_ajax_referer('coursetransit_nonce');
 
         try {
             $settings = get_option('coursetransit_settings', []);

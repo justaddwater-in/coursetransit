@@ -400,6 +400,12 @@ Check:
 
 # Changelog
 
+## 1.4.4
+
+* Improved: Course synchronization reliability and overall plugin stability.
+
+* Fixed: Minor compatibility, security, and performance issues.
+
 ## 1.4.3
 ### Enhancement
 - Sync WooCommerce billing address to Moodle user profile
