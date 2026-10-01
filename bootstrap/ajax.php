@@ -90,8 +90,12 @@ add_action('wp_ajax_coursetransit_save_email_template', function () {
         wp_unslash($_POST['template'])
     );
 
-    // Allow current + new template
-    if (!in_array($template_key, ['enrollment', 'enrollment_existing'], true)) {
+    // Core templates plus any templates explicitly registered by an add-on.
+    $allowed_templates = array_keys(
+        \CourseTransit\Services\EmailTemplate::getTemplateOptions()
+    );
+
+    if (!in_array($template_key, $allowed_templates, true)) {
         wp_send_json_error('Invalid template');
     }
 

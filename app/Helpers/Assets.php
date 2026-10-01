@@ -150,12 +150,56 @@ class Assets
             true
         );
 
+        wp_enqueue_style(
+            'coursetransit-email-templates',
+            COURSETRANSIT_URL . 'assets/css/email-templates.css',
+            ['coursetransit-app'],
+            $version
+        );
+
         wp_enqueue_script(
             'coursetransit-emails',
             COURSETRANSIT_URL . 'assets/js/emails.js',
             ['jquery'],
             $version,
             true
+        );
+
+        // Email editor configuration is filterable so add-ons can add
+        // templates without replacing the Core email controller or view.
+        $email_options = \CourseTransit\Services\EmailTemplate::getTemplateOptions();
+        $email_tags = [];
+        $email_preview = [];
+        $preview_email = wp_get_current_user()->user_email ?: get_option('admin_email');
+
+        foreach ($email_options as $email_key => $email_label) {
+            $email_tags[$email_key] = \CourseTransit\Services\EmailTemplate::getTemplateTags($email_key);
+            $preview = [
+                '{first_name}' => 'John',
+                '{last_name}' => 'Doe',
+                '{email}' => $preview_email,
+                '{username}' => 'john1234',
+                '{password}' => 'demo-pass',
+                '{course_name}' => 'Sample Course',
+                '{bundle_name}' => 'Sample Bundle',
+                '{course_count}' => '3',
+                '{course_list}' => '<ul><li>Sample Course One</li><li>Sample Course Two</li><li>Sample Course Three</li></ul>',
+                '{site_name}' => get_bloginfo('name'),
+                '{login_url}' => esc_url(home_url()),
+                '{set_password_url}' => wp_lostpassword_url(),
+            ];
+            $email_preview[$email_key] = apply_filters('coursetransit_email_preview_replacements', $preview, $email_key);
+        }
+
+        wp_localize_script(
+            'coursetransit-emails',
+            'CourseTransitEmailConfig',
+            [
+                'templates' => \CourseTransit\Services\EmailTemplate::getDefaultTemplates(),
+                'options' => $email_options,
+                'tags' => $email_tags,
+                'preview' => $email_preview,
+            ]
         );
 
         wp_enqueue_script(

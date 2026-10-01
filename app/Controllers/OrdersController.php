@@ -54,23 +54,7 @@ class OrdersController extends BaseController
                 'customer' => $order->get_formatted_billing_full_name(),
                 'email' => $order->get_billing_email(),
                 'total' => wc_price($order->get_total()),
-                'status' => (function () use ($order) {
-
-                    $status = $order->get_status();
-
-                    $map = [
-                        'completed' => '<span class="badge badge-success">Completed</span>',
-                        'processing' => '<span class="badge badge-primary">Processing</span>',
-                        'on-hold' => '<span class="badge badge-warning">On Hold</span>',
-                        'failed' => '<span class="badge badge-danger">Failed</span>',
-                        'pending' => '<span class="badge badge-secondary">Pending</span>',
-                        'cancelled' => '<span class="badge badge-dark">Cancelled</span>',
-                        'refunded' => '<span class="badge badge-info">Refunded</span>',
-                    ];
-
-                    return $map[$status] ?? '<span class="badge badge-light">' . esc_html(ucfirst($status)) . '</span>';
-
-                })(),
+                'status' => $this->getStatusBadgeHtml($order->get_status()),
                 'date' => $order->get_date_created()
                     ? $order->get_date_created()->date('Y-m-d H:i:s')
                     : '',
@@ -137,6 +121,7 @@ class OrdersController extends BaseController
             'order' => [
                 'id' => $order->get_id(),
                 'status' => wc_get_order_status_name($order->get_status()),
+                'status_badge' => $this->getStatusBadgeHtml($order->get_status()),
                 'customer' => [
                     'name' => $order->get_formatted_billing_full_name(),
                     'email' => $order->get_billing_email(),
@@ -171,6 +156,26 @@ class OrdersController extends BaseController
         ]);
     }
 
+    /**
+     * Render the order status badge consistently across the orders table and
+     * order details modal.
+     */
+    protected function getStatusBadgeHtml(string $status): string
+    {
+        $map = [
+            'completed' => '<span class="badge badge-success">Completed</span>',
+            'processing' => '<span class="badge badge-primary">Processing</span>',
+            'on-hold' => '<span class="badge badge-warning">On Hold</span>',
+            'failed' => '<span class="badge badge-danger">Failed</span>',
+            'pending' => '<span class="badge badge-secondary">Pending</span>',
+            'cancelled' => '<span class="badge badge-dark">Cancelled</span>',
+            'refunded' => '<span class="badge badge-info">Refunded</span>',
+        ];
+
+        return $map[$status]
+            ?? '<span class="badge badge-light">' . esc_html(ucfirst($status)) . '</span>';
+    }
+
     protected function isCourseTransitOrder($order): bool
     {
         foreach ($order->get_items() as $item) {
@@ -181,13 +186,29 @@ class OrdersController extends BaseController
                 continue;
             }
 
+            // A CourseTransit order can contain either a normal Moodle
+            // course product or a Pro bundle product. Bundle products do not
+            // have _coursetransit_moodle_id because they represent a group of
+            // courses, so checking only the course meta hides bundle orders.
             $moodle_id = get_post_meta(
                 $product_id,
                 '_coursetransit_moodle_id',
                 true
             );
 
-            if (!empty($moodle_id)) {
+            $bundle_id = get_post_meta(
+                $product_id,
+                '_coursetransit_bundle_id',
+                true
+            );
+
+            $product_type = get_post_meta(
+                $product_id,
+                '_coursetransit_product_type',
+                true
+            );
+
+            if (!empty($moodle_id) || !empty($bundle_id) || $product_type === 'bundle') {
                 return true;
             }
         }

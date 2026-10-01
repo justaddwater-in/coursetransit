@@ -34,6 +34,11 @@ class Route
         Router::get('courses.table', CoursesController::class, 'table');
         Router::get('orders.index', OrdersController::class);
 
+        // Allow add-ons to register additional routes without replacing the
+        // Core Route class. Email extensions should use the email template
+        // filters instead of replacing the Core emails.index route.
+        do_action('coursetransit_register_routes', Router::class);
+
         // POST actions
         Router::post('courses.sync', CoursesController::class, 'sync');
 

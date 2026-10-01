@@ -13,12 +13,20 @@ class Router
         'POST' => [],
     ];
 
+    /**
+     * Register a GET route. Add-ons may call this through the
+     * coursetransit_register_routes action.
+     */
     // Register GET route
     public static function get(string $route, string $controller, string $action = 'index'): void
     {
         self::$routes['GET'][$route] = [$controller, $action];
     }
 
+    /**
+     * Register a POST route. Add-ons may call this through the
+     * coursetransit_register_routes action.
+     */
     // Register POST route
     public static function post(string $route, string $controller, string $action): void
     {

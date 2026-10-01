@@ -7,6 +7,92 @@
     z-index: 100000 !important;
 }
 
+/* ===============================
+   SWEETALERT CONSISTENCY
+   =============================== */
+.swal2-popup {
+    border-radius: 8px !important;
+    font-family: inherit !important;
+    color: #545454 !important;
+}
+
+.swal2-title {
+    font-size: 24px !important;
+    font-weight: 600 !important;
+    color: #545454 !important;
+}
+
+.swal2-html-container {
+    color: #555 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+}
+
+.swal2-actions {
+    gap: 6px !important;
+}
+
+.swal2-actions .button-primary,
+.swal2-actions.swal2-actions .swal2-confirm {
+    background: #2271b1 !important;
+    border: 1px solid #2271b1 !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+    min-height: 38px;
+    padding: 7px 16px !important;
+    box-shadow: none !important;
+}
+
+.swal2-actions .button-primary:hover,
+.swal2-actions .swal2-confirm:hover {
+    background: #135e96 !important;
+    border-color: #135e96 !important;
+}
+
+.swal2-actions .button-secondary,
+.swal2-actions .swal2-cancel {
+    background: #fff !important;
+    border: 1px solid #2271b1 !important;
+    color: #2271b1 !important;
+    border-radius: 4px !important;
+    min-height: 38px;
+    padding: 7px 16px !important;
+    box-shadow: none !important;
+}
+
+.swal2-actions .button-secondary:hover,
+.swal2-actions .swal2-cancel:hover {
+    background: #f5f9fc !important;
+}
+
+.ct-pro-promo {
+    width: 30rem !important;
+    max-width: calc(100% - 30px) !important;
+}
+
+.ct-pro-promo .swal2-icon.swal2-info {
+    color: #2271b1 !important;
+    border-color: #2271b1 !important;
+}
+
+.ct-pro-promo-content {
+    text-align: left;
+    margin-top: 4px;
+}
+
+.ct-pro-promo-content p {
+    margin: 0 0 10px;
+}
+
+.ct-pro-promo-content ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.ct-pro-promo-content li {
+    margin: 5px 0;
+}
+
 /* Remove focus noise (keep accessibility minimal) */
 .coursetransit-actions button:focus,
 .coursetransit-actions a:focus {
@@ -203,6 +289,12 @@ table.dataTable {
 .ct-label {
     color: #6b7280 !important;
     font-weight: 500 !important;
+}
+
+.ct-required {
+    color: #d63638;
+    font-weight: 700;
+    margin-left: 2px;
 }
 
 /* ===============================
@@ -968,4 +1060,17 @@ select.form-control:not([size]):not([multiple]) {
 .ct-setting-help:focus-within .ct-tooltip {
     opacity: 1;
     visibility: visible;
+}
+
+#coursetransit-orders-tabs .coursetransit-pro-feature-trigger,
+#coursetransit-orders-tabs .coursetransit-pro-feature-trigger:hover,
+#coursetransit-orders-tabs .coursetransit-pro-feature-trigger:focus {
+    text-decoration: none;
+}
+/* Orders tabs: remove browser/theme link underlines */
+#coursetransit-orders-tabs .nav-link,
+#coursetransit-orders-tabs .nav-link:hover,
+#coursetransit-orders-tabs .nav-link:focus,
+#coursetransit-orders-tabs .nav-link:active {
+    text-decoration: none !important;
 }

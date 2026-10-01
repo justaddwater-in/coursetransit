@@ -400,6 +400,18 @@ Check:
 
 # Changelog
 
+### 2.0
+
+- Added support for the CourseTransit Pro extension add-on.
+- Updated the Email Templates section with improved UI and UX.
+- Improved admin UI and overall user experience.
+- Added various compatibility, stability, and usability improvements.
+
+## 1.5.7
+
+* Improved consistency across SweetAlert dialogs, buttons, and overall UI.
+* Cleaned up messaging and error handling for a smoother user experience.
+
 ## 1.4.4
 
 * Improved: Course synchronization reliability and overall plugin stability.

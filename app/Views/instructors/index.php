@@ -111,7 +111,7 @@ if (!defined('ABSPATH')) {
 
                             <!-- Name -->
                             <div class="mb-3">
-                                <label class="ct-label">Name</label>
+                                <label class="ct-label">Name <span class="ct-required" aria-hidden="true">*</span><span class="screen-reader-text"> (required)</span></label>
                                 <input type="text" class="form-control" name="name" required>
                             </div>
 

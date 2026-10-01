@@ -9,57 +9,21 @@ class EmailsController extends BaseController
     public function index()
     {
         $templates = get_option('coursetransit_email_templates', []);
+        $defaults = EmailTemplate::getDefaultTemplates();
+        $options = EmailTemplate::getTemplateOptions();
 
         $default_key = 'enrollment';
-
-        $template = $templates[$default_key] ?? [
-            'subject' => 'You are enrolled in {course_name}',
-            'body' => '<p>Hi {first_name},</p>
-
-            <p>
-                We’re excited to let you know that you’ve been successfully enrolled in:
-            </p>
-
-            <p style="font-size: 16px;">
-                <strong>{course_name}</strong>
-            </p>
-
-            <p>
-                You can start learning immediately by logging into your dashboard here:
-            </p>
-
-            <p>
-                <a href="{login_url}" target="_blank" rel="noopener">
-                    Access your course
-                </a>
-            </p>
-
-            <hr />
-
-            <strong>Your account details:</strong>
-
-            <ul>
-                <li>Email: {email}</li>
-                <li>Password: {password}</li>
-            </ul>
-
-            <p>
-                If you have any questions, just reply to this email — we’re happy to help.
-            </p>
-
-            <p>
-                Happy learning,<br>
-                <strong>The {site_name} Team</strong>
-            </p>
-
-            <p style="font-size:12px;color:#6b7280;">
-                If the button above doesn’t work, copy and paste this link into your browser:<br>
-                {login_url}
-            </p>'
-        ];
+        $template = wp_parse_args(
+            $templates[$default_key] ?? [],
+            $defaults[$default_key] ?? [
+                'subject' => '',
+                'body' => '',
+            ]
+        );
 
         $this->render('emails/index', [
             'template' => $template,
+            'template_options' => $options,
         ]);
     }
     public static function sendTest()
@@ -108,6 +72,17 @@ class EmailsController extends BaseController
             '{site_name}' => get_bloginfo('name'),
             '{login_url}' => esc_url($moodle_base . '/login/index.php'),
         ];
+
+        /**
+         * Allow add-ons to change test-email replacements without replacing
+         * the Core email controller or AJAX action.
+         */
+        $sample = apply_filters(
+            'coursetransit_email_test_replacements',
+            $sample,
+            $email,
+            $template
+        );
 
         $subject = str_replace(
             array_keys($sample),

@@ -4,6 +4,7 @@ use CourseTransit\Helpers\Url;
 if (!defined('ABSPATH')) {
     exit;
 }
+$coursetransit_pro_active = (bool) apply_filters('coursetransit_pro_active', false);
 ?>
 
 <!-- <aside id="sidebar" class="main-sidebar col-12 col-md-3 col-lg-2 px-0"> -->
@@ -39,67 +40,106 @@ if (!defined('ABSPATH')) {
     </form>
 
     <div class="nav-wrapper" style="flex:1; overflow-y:auto;">
+        <?php
+        $coursetransit_nav_items = [
+            [
+                'route' => 'dashboard.index',
+                'icon' => 'dashboard',
+                'label' => __('Dashboard', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=dashboard.index'),
+            ],
+            [
+                'route' => 'courses.index',
+                'icon' => 'library_books',
+                'label' => __('Courses', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=courses.index'),
+            ],
+            [
+                'route' => 'bundles.index',
+                'icon' => 'collections_bookmark',
+                'label' => __('Bundles', 'coursetransit'),
+                'url' => '#',
+                'pro' => true,
+                'feature' => 'bundles',
+            ],
+            [
+                'route' => 'instructors.index',
+                'icon' => 'person',
+                'label' => __('Instructors', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=instructors.index'),
+            ],
+            [
+                'route' => 'orders.index',
+                'icon' => 'shopping_cart',
+                'label' => __('Orders', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=orders.index'),
+            ],
+            [
+                'route' => 'emails.index',
+                'icon' => 'email',
+                'label' => __('Emails', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=emails.index'),
+            ],
+            [
+                'route' => 'settings.index',
+                'icon' => 'settings',
+                'label' => __('Settings', 'coursetransit'),
+                'url' => admin_url('admin.php?page=coursetransit&route=settings.index'),
+            ],
+        ];
+
+        /**
+         * Extend the CourseTransit admin navigation from an add-on.
+         *
+         * Each item may contain: route, icon, label, url, pro, feature.
+         * Core's PRO promotional items remain available when Pro is absent.
+         */
+        $coursetransit_nav_items = apply_filters(
+            'coursetransit_admin_nav_items',
+            $coursetransit_nav_items
+        );
+        ?>
         <ul class="nav flex-column">
+            <?php // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local loop variable.
+            foreach ($coursetransit_nav_items as $item): ?>
+                <?php
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local variable.
+                $is_pro = !empty($item['pro']);
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local variable.
+                $feature = isset($item['feature']) ? sanitize_key($item['feature']) : '';
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local variable.
+                $classes = 'nav-link';
+                if (!$is_pro && !empty($item['route'])) {
+                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local variable.
+                    $classes .= ' ' . Url::active($item['route']);
+                }
+                if ($is_pro) {
+                    // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template-local variable.
+                    $classes .= ' coursetransit-pro-feature-trigger';
+                }
+                ?>
+                <li class="nav-item">
+                    <a class="<?php echo esc_attr($classes); ?>"
+                        href="<?php echo esc_url($item['url'] ?? '#'); ?>"
+                        style="text-decoration:none;"
+                        <?php if ($is_pro): ?>data-pro-feature="<?php echo esc_attr($feature); ?>"<?php endif; ?>>
+                        <i class="material-icons"><?php echo esc_html($item['icon'] ?? 'extension'); ?></i>
+                        <span>
+                            <?php echo esc_html($item['label'] ?? ''); ?>
+                            <?php if ($is_pro): ?>
+                                <span class="badge bg-warning text-dark ms-1">PRO</span>
+                            <?php endif; ?>
+                        </span>
+                    </a>
+                </li>
+            <?php endforeach; ?>
 
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('dashboard.index')); ?>"
-                    style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=dashboard.index')); ?>">
-                    <i class="material-icons">dashboard</i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('courses.index')); ?>" style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=courses.index')); ?>">
-                    <i class="material-icons">library_books</i>
-                    <span>Courses</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('instructors.index')); ?>"
-                    style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=instructors.index')); ?>">
-                    <i class="material-icons">person</i>
-                    <span>Instructors</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('orders.index')); ?>" style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=orders.index')); ?>">
-                    <i class="material-icons">shopping_cart</i>
-                    <span>Orders</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('emails.index')); ?>" style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=emails.index')); ?>">
-                    <i class="material-icons">email</i>
-                    <span>Emails</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?php echo esc_attr(Url::active('settings.index')); ?>" style="text-decoration:none;"
-                    href="<?php echo esc_url(admin_url('admin.php?page=coursetransit&route=settings.index')); ?>">
-                    <i class="material-icons">settings</i>
-                    <span>Settings</span>
-                </a>
-            </li>
             <li class="nav-item">
                 <a class="nav-link" href="<?php echo esc_url(admin_url()); ?>" style="text-decoration:none;">
                     <i class="material-icons">arrow_back</i>
-
-                    <span>
-                        WordPress Admin
-                    </span>
+                    <span><?php echo esc_html__('WordPress Admin', 'coursetransit'); ?></span>
                 </a>
             </li>
-
         </ul>
     </div>
 
@@ -132,6 +172,7 @@ if (!defined('ABSPATH')) {
                 </a>
             </li>
 
+            <?php if (!$coursetransit_pro_active): ?>
             <li class="nav-item">
             <a class="nav-link d-flex align-items-center" target="_blank"
                 href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing"
@@ -140,6 +181,7 @@ if (!defined('ABSPATH')) {
                 <span>Upgrade Now</span>
             </a>
         </li>
+        <?php endif; ?>
         </ul>
     </div>
 

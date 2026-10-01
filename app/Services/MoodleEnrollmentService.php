@@ -7,7 +7,7 @@ use CourseTransit\Emails\Mailer;
 
 class MoodleEnrollmentService
 {
-    public static function enroll(string $email, string $first, string $last, string $phone, string $city, string $country, string $address, int $product_id): void
+    public static function enroll(string $email, string $first, string $last, string $phone, string $city, string $country, string $address, int $product_id): bool
     {
         global $wpdb;
 
@@ -19,7 +19,7 @@ class MoodleEnrollmentService
         $settings = get_option('coursetransit_settings', []);
         if (empty($settings['moodle_url']) || empty($settings['moodle_token'])) {
             Logger::log('ENROLLMENT FAILED', 'Moodle settings missing');
-            return;
+            return false;
         }
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -32,7 +32,7 @@ class MoodleEnrollmentService
 
         if (!$course) {
             Logger::log('ENROLLMENT FAILED', 'No course mapping found');
-            return;
+            return false;
         }
 
         $moodle_url = rtrim($settings['moodle_url'], '/');
@@ -155,7 +155,7 @@ class MoodleEnrollmentService
 
         if (!$user_id) {
             Logger::log('ENROLLMENT FAILED', 'User creation failed');
-            return;
+            return false;
         }
 
         // ---------------------------------
@@ -236,7 +236,7 @@ class MoodleEnrollmentService
             Logger::log('ENROLLMENT FAILED', [
                 'response' => $enrol_response
             ]);
-            return;
+            return false;
         }
 
         // ---------------------------------
@@ -255,6 +255,8 @@ class MoodleEnrollmentService
             $course_name,
             $is_new_user
         );
+
+        return true;
     }
 
     protected static function call(
@@ -459,73 +461,10 @@ class MoodleEnrollmentService
         |--------------------------------------------------------------------------
         | Default Templates
         |--------------------------------------------------------------------------
+        |
+        | Use the same Core/extension template registry as the admin editor.
         */
-        $defaultTemplates = [
-
-            /*
-            |--------------------------------------------------------------------------
-            | NEW USER TEMPLATE
-            |--------------------------------------------------------------------------
-            */
-            'enrollment' => [
-
-                'subject' => 'You are enrolled in {course_name}',
-
-                'body' => '
-                <p>Hi {first_name},</p>
-
-                <p>
-                    We’re excited to let you know that you’ve been successfully enrolled in:
-                </p>
-                <p style="font-size: 16px;"><strong>{course_name}</strong></p>
-                You can start learning immediately by logging into your dashboard here:
-
-                <a href="{login_url}" target="_blank" rel="noopener"> Access your course </a>
-
-                <hr />
-
-                <strong>Your account details:</strong>
-                <ul>
-                    <li>Email: {email}</li>
-                    <li>Password: {password}</li>
-                </ul>
-                If you have any questions, just reply to this email — we’re happy to help.
-
-                Happy learning,
-                <strong>The {site_name} Team</strong>
-                <p style="font-size: 12px; color: #6b7280;">If the button above doesn’t work, copy and paste this link into your browser:
-                {login_url}</p>
-            '
-            ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | EXISTING USER TEMPLATE
-            |--------------------------------------------------------------------------
-            */
-            'enrollment_existing' => [
-
-                'subject' => 'You are enrolled in {course_name}',
-
-                'body' => '
-                <p>Hi {first_name},</p>
-
-                <p>
-                    You have been successfully added to the course:
-                </p>
-                <p style="font-size: 16px;"><strong>{course_name}</strong></p>
-                <p>
-                    You can continue learning by logging into your dashboard:
-                </p>
-                <a href="{login_url}" target="_blank" rel="noopener"> Go to your dashboard </a>
-
-                <p>
-                    Happy learning,
-                    <strong>The {site_name} Team</strong>
-                </p>
-            '
-            ]
-        ];
+        $defaultTemplates = EmailTemplate::getDefaultTemplates();
 
         /*
         |--------------------------------------------------------------------------
@@ -616,6 +555,15 @@ class MoodleEnrollmentService
             $subject,
             EmailTemplate::wrap($body)
         );
+    }
+
+    /**
+     * Fires after Core completes the standard learner enrollment workflow.
+     * Add-ons can react without replacing MoodleEnrollmentService.
+     */
+    protected static function fireEnrollmentCompleted(array $context): void
+    {
+        do_action('coursetransit_enrollment_completed', $context);
     }
 
 
