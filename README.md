@@ -1,6 +1,6 @@
 # CourseTransit
 
-CourseTransit is a WooCommerce + Moodle integration plugin for WordPress that helps sync Moodle courses into WooCommerce products and automate enrollment workflows after purchase.
+CourseTransit is a WooCommerce + Moodle integration plugin for WordPress that syncs Moodle courses into WooCommerce products and automates student enrollment after purchase.
 
 It is designed for online course businesses that want to:
 
@@ -9,6 +9,43 @@ It is designed for online course businesses that want to:
 * Manage instructors and enrollments
 * Automate course access after successful orders
 * Monitor order activity from the WordPress admin
+
+Learn more: [CourseTransit product page](https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/)
+
+---
+
+# Editions
+
+CourseTransit comes in a free edition (this plugin) and a Pro edition (an add-on extension).
+
+## Free Features
+
+* Secure, token-based connection between Moodle and WordPress
+* One-click Moodle course synchronization (title, description, category, instructor details)
+* Automatic WooCommerce product creation for each synced course
+* Automatic Moodle user account creation and linking after purchase
+* Instant student enrollment on completed WooCommerce orders
+* Configurable enrollment duration (lifetime or fixed-term access)
+* Customizable enrollment email templates with dynamic tags
+* Instructor management from WordPress
+* Unified dashboard for revenue, orders, courses, and enrollments
+* Course category synchronization
+* Built-in activity logs and Moodle connection testing
+* Connect multiple WordPress sites to a single Moodle instance
+* Guided setup wizard
+* Clean, dedicated admin interface
+
+## Pro Features
+
+CourseTransit Pro builds on the free edition with automation and advanced control:
+
+* Single Sign-On (SSO) between WordPress and Moodle
+* Selective course synchronization (choose which courses appear in your storefront)
+* Automatic scheduled synchronization
+* Priority product updates
+* One year of developer support
+
+Upgrade: [CourseTransit Pro](https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/)
 
 ---
 
@@ -236,47 +273,6 @@ Configure Moodle connection.
 
 ---
 
-# Plugin Architecture
-
-## Main Structure
-
-```text
-coursetransit/
-├── app/
-│   ├── Controllers/
-│   ├── Emails/
-│   ├── Helpers/
-│   ├── Models/
-│   ├── Services/
-│   ├── Support/
-│   └── Views/
-├── assets/
-├── bootstrap/
-├── languages/
-├── coursetransit.php
-└── uninstall.php
-```
-
-## Important Services
-
-### MoodleClient
-
-Handles Moodle API communication.
-
-### MoodleEnrollmentService
-
-Processes Moodle enrollments.
-
-### CourseSyncService
-
-Handles syncing Moodle courses into WordPress.
-
-### ProductTab
-
-Adds CourseTransit fields to WooCommerce products.
-
----
-
 # Database & Storage
 
 The plugin stores:
@@ -366,73 +362,45 @@ Yes. Enrollment is triggered after WooCommerce order processing.
 
 ---
 
-# Troubleshooting
-
-## Moodle connection fails
-
-Check:
-
-* Moodle URL
-* CourseTransit integration token
-* CourseTransit Moodle plugin installed correctly
-* Integration token is valid
-* Website registration completed
-
-## Enrollment not working
-
-Check:
-
-* WooCommerce order status
-* Product-course mapping
-* CourseTransit token permissions
-* Debug logs
-
-## Courses not syncing
-
-Check:
-
-* CourseTransit Moodle plugin connection
-* Integration token validity
-* Website registration status
-* Server timeouts
-
----
-
 # Changelog
 
-### 2.0
+## 2.0
 
-- Added support for the CourseTransit Pro extension add-on.
-- Updated the Email Templates section with improved UI and UX.
-- Improved admin UI and overall user experience.
-- Added various compatibility, stability, and usability improvements.
+* Added support for the CourseTransit Pro extension add-on
+* Updated the Email Templates section with improved UI and UX
+* Improved admin UI and overall user experience
+* Added various compatibility, stability, and usability improvements
 
 ## 1.5.7
 
-* Improved consistency across SweetAlert dialogs, buttons, and overall UI.
-* Cleaned up messaging and error handling for a smoother user experience.
+* Maintenance release: packaging, documentation, and WordPress coding-standard cleanup
+* Stable tag aligned with the plugin version
+
+## 1.5.0
+
+* Improved consistency across SweetAlert dialogs, buttons, and overall UI
+* Cleaned up messaging and error handling for a smoother user experience
 
 ## 1.4.4
 
-* Improved: Course synchronization reliability and overall plugin stability.
-
-* Fixed: Minor compatibility, security, and performance issues.
+* Improved: Course synchronization reliability and overall plugin stability
+* Fixed: Minor compatibility, security, and performance issues
 
 ## 1.4.3
-### Enhancement
-- Sync WooCommerce billing address to Moodle user profile
+
+* Added: WooCommerce billing phone, city, country, and address synchronization to Moodle user profiles
 
 ## 1.4.2
 
-* Added: Demo Mode notice on the Select & Sync Courses screen to explicitly indicate that listed courses are dummy data for demonstration and testing purposes only.
+* Added: Demo Mode notice on the Select & Sync Courses screen to explicitly indicate that listed courses are dummy data for demonstration and testing purposes only
 
 ## 1.4.1
 
-* Added: Optional admin consent notice for receiving setup tips, changelog notifications, and license updates.
-* Added: Consent preferences are only saved after an explicit admin action.
-* Improved: Plugin stability and compatibility with the latest WordPress version.
-* Improved: Code quality and WordPress Coding Standards compliance.
-* Fixed: Minor bugs and performance improvements.
+* Added: Optional admin consent notice for receiving setup tips, changelog notifications, and license updates
+* Added: Consent preferences are only saved after an explicit admin action
+* Improved: Plugin stability and compatibility with the latest WordPress version
+* Improved: Code quality and WordPress Coding Standards compliance
+* Fixed: Minor bugs and performance improvements
 
 ## 1.4.0
 
@@ -474,7 +442,4 @@ This plugin is licensed under the GNU General Public License v3.0.
 
 # Author
 
-JustAddWater
-
-Website:
-[https://justaddwater.in/](https://justaddwater.in/)
+Built by [Justaddwater](https://justaddwater.in/) — an enterprise eLearning development company.
