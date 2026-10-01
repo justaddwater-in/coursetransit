@@ -196,13 +196,29 @@ class DashboardController extends BaseController
                 continue;
             }
 
+            // A CourseTransit order can contain either a normal Moodle
+            // course product or a Pro bundle product. Bundle products do not
+            // have _coursetransit_moodle_id because they represent a group of
+            // courses, so checking only the course meta hides bundle orders.
             $moodle_id = get_post_meta(
                 $product_id,
                 '_coursetransit_moodle_id',
                 true
             );
 
-            if (!empty($moodle_id)) {
+            $bundle_id = get_post_meta(
+                $product_id,
+                '_coursetransit_bundle_id',
+                true
+            );
+
+            $product_type = get_post_meta(
+                $product_id,
+                '_coursetransit_product_type',
+                true
+            );
+
+            if (!empty($moodle_id) || !empty($bundle_id) || $product_type === 'bundle') {
                 return true;
             }
         }

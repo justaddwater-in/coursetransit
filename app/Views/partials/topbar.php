@@ -8,6 +8,14 @@ $coursetransit_plugin_data = get_file_data(
   ['Version' => 'Version']
 );
 $coursetransit_version = $coursetransit_plugin_data['Version'] ?? '1.0.0';
+$coursetransit_topbar_label = apply_filters(
+  'coursetransit_topbar_label',
+  'v' . $coursetransit_version
+);
+$coursetransit_topbar_badge = apply_filters(
+  'coursetransit_topbar_badge',
+  ''
+);
 ?>
 <div class="main-navbar sticky-top bg-white">
 
@@ -24,10 +32,13 @@ $coursetransit_version = $coursetransit_plugin_data['Version'] ?? '1.0.0';
       <li class="nav-item border-right d-flex align-items-center justify-content-center"
         style="height:56px; padding:0 12px;">
 
-        <div class="d-flex align-items-center justify-content-center" style="height:100%;">
+        <div class="d-flex align-items-center justify-content-center gap-2" style="height:100%;">
           <span style="font-size:13px; color:#6b7280; font-weight:500; line-height:1;">
-              v<?php echo esc_html(COURSETRANSIT_VERSION); ?>
+              <?php echo esc_html($coursetransit_topbar_label); ?>
           </span>
+          <?php if (!empty($coursetransit_topbar_badge)) : ?>
+            <?php echo wp_kses_post($coursetransit_topbar_badge); ?>
+          <?php endif; ?>
         </div>
 
       </li>

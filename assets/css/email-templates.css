@@ -1,0 +1,301 @@
+/* ==========================================================
+ * CourseTransit Email Templates
+ * Uses the same Shards / WordPress admin patterns as the
+ * Dashboard, Courses, Bundles and Settings screens.
+ * ========================================================== */
+
+.ct-email-page-description {
+    margin: 6px 0 0;
+    color: #6c757d;
+    font-size: 13px;
+}.ct-email-card {
+    max-width: 100% !important;
+    overflow: hidden;
+}
+
+.ct-email-card-header {
+    padding: 16px 20px;
+}
+
+.ct-email-card-help {
+    display: block;
+    margin-top: 5px;
+    color: #7b838c;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.ct-email-template-label {
+    margin: 0 10px 0 0;
+    color: #5a6169;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ct-email-template-select {
+    width: 310px;
+    min-height: 38px;
+    border-color: #d8dfe6;
+    box-shadow: none;
+    font-size: 13px;
+}
+
+.ct-email-template-select:focus,
+.ct-email-field .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .1);
+}
+
+.ct-email-workspace {
+    display: grid;
+    grid-template-columns: 285px minmax(0, 1fr);
+    min-height: 600px;
+}
+
+.ct-email-tags-panel {
+    padding: 20px;
+    border-right: 1px solid #e9ecef;
+    background: #fbfbfc;
+}
+
+.ct-email-section-heading {
+    margin-bottom: 20px;
+}
+
+.ct-email-section-heading h6 {
+    color: #343a40;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.ct-email-section-heading p {
+    margin: 5px 0 0;
+    color: #7b838c;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.ct-tag-group {
+    margin-bottom: 19px;
+}
+
+.ct-tag-group h6 {
+    margin: 0 0 8px;
+    color: #7b838c;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.ct-tag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ct-tag-chip {
+    width: 100%;
+    min-height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 9px;
+    border: 1px solid #e1e5e9;
+    border-radius: 4px;
+    background: #fff;
+    color: #495057;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .12s ease, background .12s ease;
+}
+
+.ct-tag-chip:hover {
+    border-color: #c8d0d8;
+    background: #f8f9fa;
+}
+
+.ct-tag-chip:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, .08);
+}
+
+.ct-tag-chip span {
+    min-width: 0;
+    overflow: hidden;
+    color: #495057;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ct-tag-chip code {
+    flex: 0 0 auto;
+    padding: 2px 5px;
+    border-radius: 3px;
+    background: #f1f3f5;
+    color: #6c757d;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 9px;
+}
+
+.ct-email-tag-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 4px;
+    padding-top: 13px;
+    border-top: 1px solid #e9ecef;
+    color: #7b838c;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.ct-email-tag-note .material-icons {
+    flex: 0 0 auto;
+    font-size: 15px;
+}
+
+.ct-email-editor-panel {
+    min-width: 0;
+    padding: 20px 22px;
+}
+
+.ct-email-field {
+    margin-bottom: 18px;
+}
+
+.ct-email-field-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 7px;
+}
+
+.ct-email-field-label label {
+    margin: 0;
+    color: #495057;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ct-email-field-label span {
+    color: #9aa1a8;
+    font-size: 10px;
+}
+
+.ct-email-field > .form-control {
+    min-height: 40px;
+    border-color: #d8dfe6;
+    border-radius: 4px;
+    box-shadow: none;
+    color: #495057;
+    font-size: 13px;
+}
+
+.ct-email-editor-shell {
+    overflow: hidden;
+    border: 1px solid #d8dfe6;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.ct-email-editor-shell .mce-tinymce {
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.ct-email-editor-shell .wp-editor-container {
+    border: 0;
+}
+
+.ct-email-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding-top: 3px;
+}
+
+.ct-email-status {
+    color: #7b838c;
+    font-size: 11px;
+}
+
+.ct-email-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.ct-email-actions .button {
+    min-height: 36px;
+    padding: 5px 12px;
+}
+
+.ct-email-actions .button-primary {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.ct-preview-body {
+    max-height: 520px;
+    overflow: auto;
+    padding: 14px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background: #f6f7f7;
+    text-align: left;
+}
+
+@media (max-width: 1000px) {
+    .ct-email-card-header .col-md-5 {
+        justify-content: flex-start !important;
+    }
+
+    .ct-email-workspace {
+        grid-template-columns: 245px minmax(0, 1fr);
+    }
+
+    .ct-email-template-select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 782px) {
+    .ct-email-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .ct-email-tags-panel {
+        border-right: 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .ct-email-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ct-email-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .ct-email-editor-panel,
+    .ct-email-tags-panel {
+        padding: 16px;
+    }
+
+    .ct-email-actions .button {
+        width: 100%;
+    }
+}

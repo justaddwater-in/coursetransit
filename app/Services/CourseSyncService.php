@@ -65,6 +65,8 @@ class CourseSyncService
         /* ==== NEW: Soft delete missing courses ==== */
         self::markMissingCourses($moodle_ids);
 
+        do_action('coursetransit_course_sync_completed', $stats);
+
         return $stats;
     }
 
@@ -925,7 +927,7 @@ class CourseSyncService
             // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified in the controller.
             empty(
             sanitize_text_field(
-                wp_unslash($_POST['processed_once'] ?? '')
+                wp_unslash($_POST['processed_once'] ?? '') // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce is verified in the controller.
             )
         )
         ) {
@@ -959,6 +961,12 @@ class CourseSyncService
             // Clean up both caches after the sync has completed.
             delete_transient($transient_key);
             self::deleteCourseSyncFile($sync_id);
+
+            do_action('coursetransit_course_sync_completed', [
+                'total' => $total,
+                'processed' => $offset + $processed,
+                'sync_id' => $sync_id,
+            ]);
         }
 
         return [

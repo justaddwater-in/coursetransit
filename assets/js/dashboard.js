@@ -94,13 +94,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const fixBtn = document.getElementById('ct-auto-fix');
 
     if (!fixBtn) {
-        console.log('Fix button not found');
         return;
     }
 
     fixBtn.addEventListener('click', function () {
 
-        console.log('Fix clicked');
 
         fixBtn.disabled = true;
         fixBtn.innerText = 'Fixing...';
@@ -117,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(res => res.json())
             .then(res => {
 
-                console.log(res);
 
                 if (res.success) {
 
@@ -151,15 +148,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     // 5. Enable click outside
                     enableBackdropClose();
                 } else {
-                    alert(res.data || 'Something went wrong');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Setup Failed',
+                        text: res.data || 'Something went wrong.'
+                    });
                     fixBtn.disabled = false;
                     fixBtn.innerText = 'Fix Automatically';
                 }
 
             })
             .catch(err => {
-                console.error(err);
-                alert('AJAX failed');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Request Failed',
+                    text: 'Unable to complete the setup request.'
+                });
                 fixBtn.disabled = false;
             });
 

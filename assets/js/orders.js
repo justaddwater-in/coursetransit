@@ -1,5 +1,51 @@
 jQuery(function ($) {
 
+    /**
+     * PRO FEATURE PROMOTIONS
+     */
+    $(document).on('click', '.coursetransit-pro-feature-trigger[data-pro-feature="request-quote"]', function (e) {
+
+        e.preventDefault();
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Request a Quote',
+            html: `
+                <div class="ct-pro-promo-content">
+                    <p>
+                        <strong>Request a Quote</strong> is available in <strong>CourseTransit Pro</strong>.
+                    </p>
+                    <p style="margin-bottom:10px;">
+                        Upgrade to Pro to:
+                    </p>
+                    <ul style="padding-left:20px;margin:0;">
+                        <li>Let customers request a custom quote for multiple seats</li>
+                        <li>Support bulk purchasing and quantity-based pricing</li>
+                        <li>Collect and manage quote requests from your WordPress admin</li>
+                        <li>Convert accepted quotes into WooCommerce orders</li>
+                    </ul>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: {
+                popup: 'ct-pro-promo',
+                confirmButton: 'button button-primary px-4',
+                cancelButton: 'button button-secondary mx-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+            }
+        });
+
+    });
+
+
     const table = $('#coursetransit-orders-table').DataTable({
         processing: true,
         serverSide: false,
@@ -80,7 +126,8 @@ jQuery(function ($) {
                 $('#order-gstin-wrap').hide();
             }
 
-            $('#order-status').text(o.status);
+            // Use the exact same badge markup/classes as the orders table.
+            $('#order-status').html(o.status_badge);
             $('#order-id').html(`
                 <a href="${o.edit_link}" target="_blank">#${o.id}</a>
             `);

@@ -130,18 +130,20 @@ jQuery(function ($) {
 
                         if (!json.success) {
 
+                            const errorMessage =
+                                json?.data?.message ||
+                                json?.message ||
+                                'Unable to connect to Moodle. Please check the Moodle URL and token.';
+
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Connection Failed',
-                                html: `
-                                    <pre style="
-                                        text-align:left;
-                                        max-height:300px;
-                                        overflow:auto;
-                                    ">
-${JSON.stringify(json.data || json, null, 2)}
-                                    </pre>
-                                `
+                                text: errorMessage,
+                                confirmButtonText: 'OK',
+                                buttonsStyling: false,
+                                customClass: {
+                                    confirmButton: 'button button-primary px-4'
+                                }
                             });
 
                             return;
@@ -303,7 +305,12 @@ ${JSON.stringify(json.data || json, null, 2)}
             didOpen: () => Swal.showLoading()
         });
 
-        $.post(CourseTransitAjax.ajax_url, {
+        const courseTransitExtraSettings =
+            (typeof window.CourseTransitSettingsExtra === 'function')
+                ? window.CourseTransitSettingsExtra()
+                : {};
+
+        $.post(CourseTransitAjax.ajax_url, Object.assign({
 
             action: 'coursetransit_save_course_settings',
 
@@ -331,7 +338,7 @@ ${JSON.stringify(json.data || json, null, 2)}
             _ajax_nonce:
                 CourseTransitAjax.nonce
 
-        })
+        }, courseTransitExtraSettings || {}))
             .done(res => {
 
                 $btn
@@ -378,6 +385,115 @@ ${JSON.stringify(json.data || json, null, 2)}
     /**
      * LOAD SYNC SETTINGS
      */
+    /**
+     * PRO FEATURE PROMOTIONS
+     */
+    $(document).on('click', '.coursetransit-pro-feature-trigger[data-pro-feature="sso"]', function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Single Sign-On',
+            html: `
+                <div class="ct-pro-promo-content">
+                    <p><strong>Single Sign-On (SSO)</strong> is available in CourseTransit Pro.</p>
+                    <p>Upgrade to Pro to:</p>
+                    <ul>
+                        <li>Enable seamless single sign-on</li>
+                        <li>Simplify the login experience for learners</li>
+                        <li>Make course access faster and easier</li>
+                    </ul>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: {
+                popup: 'ct-pro-promo',
+                confirmButton: 'button button-primary px-4',
+                cancelButton: 'button button-secondary mx-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+            }
+        });
+    });
+
+    $(document).on('click', '.coursetransit-pro-feature-trigger[data-pro-feature="bulk-purchase"]', function (e) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Bulk Purchase',
+            html: `
+                <div class="ct-pro-promo-content">
+                    <p><strong>Bulk Purchase</strong> is available in <strong>CourseTransit Pro</strong>.</p>
+                    <p style="margin-bottom:10px;">Upgrade to Pro to:</p>
+                    <ul style="padding-left:20px;margin:0;">
+                        <li>Sell multiple seats in a single purchase</li>
+                        <li>Configure quantity-based discount tiers</li>
+                        <li>Let customers request a quote for larger orders</li>
+                        <li>Manage quote requests from your WordPress admin</li>
+                    </ul>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: { popup: 'ct-pro-promo', confirmButton: 'button button-primary px-4', cancelButton: 'button button-secondary mx-2' },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+        });
+    });
+
+    $(document).on('click', '.coursetransit-pro-feature-trigger[data-pro-feature="automatic-sync"]', function (e) {
+
+        e.preventDefault();
+
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Automatic Course Sync',
+            html: `
+                <div class="ct-pro-promo-content">
+                    <p>
+                        Automatic Course Sync is available in <strong>CourseTransit Pro</strong>.
+                    </p>
+                    <p style="margin-bottom:10px;">
+                        Upgrade to Pro to:
+                    </p>
+                    <ul style="padding-left:20px;margin:0;">
+                        <li>Process Moodle webhook events automatically</li>
+                        <li>Keep courses synchronized without manual syncing</li>
+                        <li>Automatically react to Moodle course changes</li>
+                        <li>Reduce ongoing synchronization work</li>
+                    </ul>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: {
+                popup: 'ct-pro-promo',
+                confirmButton: 'button button-primary px-4',
+                cancelButton: 'button button-secondary mx-2'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+            }
+        });
+
+    });
+
     function loadCourseTransitSettings() {
 
         if (

@@ -177,10 +177,17 @@ jQuery(function ($) {
         Swal.fire({
             title: 'Sync this course?',
             text: 'This will update this course from Moodle.',
-            icon: 'question',
+            icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, sync',
             cancelButtonText: 'Cancel',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: {
+                confirmButton: 'button button-primary px-4',
+                cancelButton: 'button button-secondary mx-2',
+            },
+            buttonsStyling: false
         }).then((result) => {
 
             if (!result.isConfirmed) return;
@@ -195,16 +202,28 @@ jQuery(function ($) {
                 .done(function (res) {
 
                     if (!res || res.success !== true) {
-                        Swal.fire('Failed', res?.data?.message || 'Sync failed', 'error');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Sync Failed',
+                            text: res?.data?.message || 'Sync failed.'
+                        });
                         return;
                     }
 
-                    Swal.fire('Success', 'Course synced successfully', 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sync Complete',
+                        text: 'Course synced successfully.'
+                    });
 
                     $('#coursetransit-courses-table').DataTable().ajax.reload(null, false);
                 })
                 .fail(function () {
-                    Swal.fire('Error', 'Server error', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Server Error',
+                        text: 'Unable to complete the course sync.'
+                    });
                 })
                 .always(function () {
                     $btn.prop('disabled', false).text(originalText);
@@ -861,6 +880,38 @@ jQuery(function ($) {
 
     });
 
+    /**
+     * PRO FEATURE PROMOTIONS
+     */
+    $(document).on('click', '.coursetransit-pro-feature-trigger[data-pro-feature="bundles"]', function (e) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'info',
+            title: 'Unlock Course Bundles',
+            html: `
+                <div style="text-align:left;line-height:1.7;margin-top:10px;">
+                    <p><strong>Course Bundles</strong> are available in <strong>CourseTransit Pro</strong>.</p>
+                    <p style="margin-bottom:10px;">Upgrade to Pro to:</p>
+                    <ul style="padding-left:20px;margin:0;">
+                        <li>Create bundles from multiple courses</li>
+                        <li>Set bundle pricing and sale pricing</li>
+                        <li>Configure enrollment periods</li>
+                        <li>Manage bundle products through WooCommerce</li>
+                    </ul>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Upgrade to Pro',
+            cancelButtonText: 'Maybe Later',
+            confirmButtonColor: '#2271b1',
+            reverseButtons: true,
+            customClass: { popup: 'ct-pro-promo', confirmButton: 'button button-primary px-4', cancelButton: 'button button-secondary mx-2' },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
+        });
+    });
+
     $(document).on('click', '#import-selected-courses', function () {
 
         let selected = [];
@@ -908,6 +959,7 @@ jQuery(function ($) {
             confirmButtonColor: '#2271b1',
             reverseButtons: true,
             customClass: {
+                popup: 'ct-pro-promo',
                 confirmButton: 'button button-primary px-4',
                 cancelButton: 'button button-secondary mx-2'
             },
@@ -916,7 +968,6 @@ jQuery(function ($) {
 
             if (result.isConfirmed) {
 
-                // TODO: Replace with your pricing page
                 window.open('https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing', '_blank');
 
             }

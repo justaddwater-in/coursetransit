@@ -3,6 +3,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 $coursetransit_settings = $settings ?? [];
+$coursetransit_pro_active = (bool) apply_filters('coursetransit_pro_active', false);
 ?>
 
 <!-- PAGE HEADER -->
@@ -22,17 +23,28 @@ $coursetransit_settings = $settings ?? [];
         </button>
     </li>
 
+    <?php do_action('coursetransit_settings_tabs_after_general'); ?>
+
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="sync-tab" data-bs-toggle="tab" data-bs-target="#tab-sync" type="button" role="tab">
             Synchronization
         </button>
     </li>
 
+    <?php if (!$coursetransit_pro_active): ?>
     <li class="nav-item" role="presentation">
-        <button class="nav-link" id="sso-tab" data-bs-toggle="tab" data-bs-target="#tab-sso" type="button" role="tab">
-            SSO
-            <span class="badge bg-warning text-dark ms-1">PRO</span>
+        <button class="nav-link coursetransit-pro-feature-trigger" id="sso-tab" data-pro-feature="sso" type="button" role="tab">
+            SSO <span class="badge bg-warning text-dark ms-1">PRO</span>
         </button>
+    </li>
+    <?php endif; ?>
+
+    <li class="nav-item" role="presentation">
+        <?php if ($coursetransit_pro_active): ?>
+            <button class="nav-link" id="bulk-tab" data-bs-toggle="tab" data-bs-target="#tab-bulk" type="button" role="tab">Bulk Purchase</button>
+        <?php else: ?>
+            <button class="nav-link coursetransit-pro-feature-trigger" id="bulk-tab" data-pro-feature="bulk-purchase" type="button" role="tab">Bulk Purchase <span class="badge bg-warning text-dark ms-1">PRO</span></button>
+        <?php endif; ?>
     </li>
 
     <li class="nav-item" role="presentation">
@@ -119,6 +131,8 @@ $coursetransit_settings = $settings ?? [];
 
             </div>
         </div>
+
+        <?php do_action('coursetransit_settings_content_after_general'); ?>
 
         <!-- SYNCHRONIZATION -->
         <div class="tab-pane fade" id="tab-sync" role="tabpanel">
@@ -343,7 +357,31 @@ $coursetransit_settings = $settings ?? [];
 
                         </div>
 
-                        <!-- ACTIONS -->
+                        <!-- AUTOMATIC COURSE SYNC -->
+        <div class="col-lg-6 col-md-12">
+            <?php ob_start(); do_action('coursetransit_settings_auto_sync_field'); $coursetransit_auto_sync_content = ob_get_clean(); ?>
+            <?php if ($coursetransit_auto_sync_content !== ''): ?>
+                <?php echo $coursetransit_auto_sync_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Add-on owns its trusted settings markup. ?>
+            <?php else: ?>
+                <label class="ct-setting-label d-flex align-items-center justify-content-between">
+                    <span>
+                        Automatic Course Sync
+                        <?php if (!$coursetransit_pro_active): ?>
+                            <span class="badge bg-warning text-dark ms-1">PRO</span>
+                        <?php endif; ?>
+                    </span>
+                </label>
+                <button type="button" class="button button-secondary w-100 coursetransit-pro-feature-trigger"
+                    data-pro-feature="automatic-sync">
+                    Unlock Automatic Sync
+                </button>
+                <small class="text-muted d-block mt-2">
+                    Automatically process Moodle webhook events and keep courses synchronized without manual syncing.
+                </small>
+            <?php endif; ?>
+        </div>
+
+        <!-- ACTIONS -->
                         <div class="col-12">
 
                             <div class="coursetransit-sync-actions">
@@ -366,24 +404,42 @@ $coursetransit_settings = $settings ?? [];
         </div>
 
         <!-- SSO -->
+        <?php if (!$coursetransit_pro_active): ?>
         <div class="tab-pane fade" id="tab-sso" role="tabpanel">
+            <?php ob_start(); do_action('coursetransit_settings_sso_content'); $coursetransit_sso_content = ob_get_clean(); ?>
+            <?php if ($coursetransit_sso_content !== ''): ?>
+                <?php echo $coursetransit_sso_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Add-on owns its trusted settings markup. ?>
+            <?php else: ?>
+                <h5>
+                    Single Sign-On (SSO)
+                    <span class="badge bg-warning text-dark">PRO</span>
+                </h5>
+                <p class="text-muted" style="font-size:13px;">
+                    Single Sign-On (SSO) is available in the Pro version of CourseTransit.
+                </p>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
 
-            <h5>
-                Single Sign-On (SSO)
-                <span class="badge bg-warning text-dark">PRO</span>
-            </h5>
-
-            <p class="text-muted" style="font-size:13px;">
-                Single Sign-On (SSO) is available in the Pro version of CourseTransit.
-            </p>
-
-            <p>
-                <a href="https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/#pricing"
-                    class="button button-primary" target="_blank" rel="noopener noreferrer">
+        <!-- BULK PURCHASE -->
+        <div class="tab-pane fade" id="tab-bulk" role="tabpanel">
+            <?php ob_start(); do_action('coursetransit_settings_bulk_content'); $coursetransit_bulk_content = ob_get_clean(); ?>
+            <?php if ($coursetransit_bulk_content !== ''): ?>
+                <?php echo $coursetransit_bulk_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Add-on owns its trusted settings markup. ?>
+            <?php elseif (!$coursetransit_pro_active): ?>
+                <h5>
+                    Bulk Purchase
+                    <span class="badge bg-warning text-dark">PRO</span>
+                </h5>
+                <p class="text-muted" style="font-size:13px;">
+                    Bulk Purchase, quantity-based discounts, and Request a Quote are available in the Pro version of CourseTransit.
+                </p>
+                <button type="button" class="button button-primary coursetransit-pro-feature-trigger" data-pro-feature="bulk-purchase">
                     Upgrade to CourseTransit Pro
-                </a>
-            </p>
-
+                </button>
+            <?php else: ?>
+                <p class="text-muted">Bulk Purchase settings could not be loaded. Please reload the page.</p>
+            <?php endif; ?>
         </div>
 
         <!-- LOGS -->

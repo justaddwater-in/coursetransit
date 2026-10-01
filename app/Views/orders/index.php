@@ -11,6 +11,48 @@ if (!defined('ABSPATH')) {
 }
 ?>
 
+<?php
+$coursetransit_order_tabs = [
+    [
+        'label' => __('All Orders', 'coursetransit'),
+        'url' => '#',
+        'active' => true,
+    ],
+    [
+        'label' => __('Quote Requests', 'coursetransit'),
+        'url' => '#',
+        'pro' => true,
+        'feature' => 'request-quote',
+    ],
+];
+$coursetransit_order_tabs = apply_filters(
+    'coursetransit_orders_tabs',
+    $coursetransit_order_tabs
+);
+?>
+
+<!-- ORDER TABS -->
+<ul class="nav nav-tabs mb-3 mt-3" id="coursetransit-orders-tabs" role="tablist">
+    <?php foreach ($coursetransit_order_tabs as $tab): ?>
+        <li class="nav-item" role="presentation">
+            <a
+                href="<?php echo esc_url($tab['url'] ?? '#'); ?>"
+                class="nav-link<?php echo !empty($tab['active']) ? ' active' : ''; ?><?php echo !empty($tab['pro']) ? ' coursetransit-pro-feature-trigger' : ''; ?>"
+                role="tab"
+                <?php if (!empty($tab['active'])): ?>aria-current="page"<?php endif; ?>
+                <?php if (!empty($tab['pro'])): ?>data-pro-feature="<?php echo esc_attr($tab['feature'] ?? ''); ?>"<?php endif; ?>>
+                <?php echo esc_html($tab['label'] ?? ''); ?>
+                <?php if (!empty($tab['pro'])): ?>
+                    <span class="badge bg-warning text-dark ms-1">PRO</span>
+                <?php endif; ?>
+                <?php if (isset($tab['count'])): ?>
+                    <span class="badge bg-secondary ms-1"><?php echo esc_html((string) $tab['count']); ?></span>
+                <?php endif; ?>
+            </a>
+        </li>
+    <?php endforeach; ?>
+</ul>
+
 <div class="page-header row no-gutters py-4" style="padding-top: 0 !important; padding-bottom: 0 !important;">
     <div class="col-12 col-sm-6">
         <h3 class="page-title">Orders</h3>
@@ -77,7 +119,7 @@ if (!defined('ABSPATH')) {
 
                     <div style="margin-bottom:24px;">
                         <div style="font-size:12px;color:#6b7280;margin-bottom:6px;">Status</div>
-                        <span id="order-status" class="badge bg-secondary"></span>
+                        <span id="order-status"></span>
                     </div>
 
                     <div style="margin-bottom:24px;">

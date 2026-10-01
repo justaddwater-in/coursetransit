@@ -1,10 +1,10 @@
-=== CourseTransit ===
+=== CourseTransit - WordPress Moodle Integration ===
 Contributors: justaddwater
 Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.4
+Stable tag: 2.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -123,6 +123,23 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Changelog ==
 
+= 2.0 =
+
+* Added support for the CourseTransit Pro extension add-on.
+* Updated the Email Templates section with improved UI and UX.
+* Improved admin UI and overall user experience.
+* Added various compatibility, stability, and usability improvements.
+
+= 1.5.7 =
+
+* Maintenance release: packaging, documentation, and WordPress coding-standard cleanup.
+* Stable tag aligned with the plugin version.
+
+= 1.5.0 =
+
+* Improved consistency across SweetAlert dialogs, buttons, and overall UI.
+* Cleaned up messaging and error handling for a smoother user experience.
+
 = 1.4.4 =
 
 * Improved: Course synchronization reliability and overall plugin stability.
@@ -172,6 +189,14 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Upgrade Notice ==
 
+= 2.0 =
+
+CourseTransit 2.0 adds support for the CourseTransit Pro extension add-on, along with improved Email Templates UI/UX, admin interface improvements, and various stability and compatibility updates.
+
+= 1.5.0 =
+
+This release improves consistency across SweetAlert dialogs, buttons, and overall UI. It also includes cleaner messaging and improved error handling for a smoother user experience.
+
 = 1.4.4 =
 
 This release improves course synchronization reliability and overall plugin stability. It also includes minor compatibility, security, and performance improvements. Updating is recommended.
@@ -210,7 +235,7 @@ This data is only transmitted when the administrator has configured Moodle integ
 
 **Optional: CourseTransit update service**
 
-After activation, CourseTransit displays an optional consent notice asking whether you'd like to share your administrator email address, website domain, administrator name, and WordPress, PHP, and CourseTransit version information with the CourseTransit service. This information is used to provide product updates, setup guidance, compatibility notices, and licensing communications.
+After activation, CourseTransit displays an optional consent notice asking whether you'd like to share your administrator email address, website domain and website URL, administrator name, and WordPress, PHP, and CourseTransit version information with the CourseTransit service. This information is used to provide product updates, setup guidance, compatibility notices, and licensing communications.
 
 Nothing is shared unless you explicitly click **"Yes, I agree"**. If you choose **"Not now"** or dismiss the notice, no information is sent and the plugin continues to function normally.
 

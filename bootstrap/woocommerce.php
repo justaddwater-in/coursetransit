@@ -79,6 +79,9 @@ add_action('woocommerce_thankyou', function ($order_id) {
  */
 add_action('woocommerce_order_status_completed', function ($order_id) {
 
+    // Pro owns completed CourseTransit orders when active, including bulk license creation.
+    if ((bool) apply_filters('coursetransit_pro_active', false)) { return; }
+
     if (!$order_id) {
         return;
     }
@@ -111,10 +114,12 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
         ]))
     );
 
+    $core_items_enrolled = 0;
+
     foreach ($order->get_items() as $item) {
         $product_id = $item->get_product_id();
 
-        \CourseTransit\Services\MoodleEnrollmentService::enroll(
+        $enrolled = \CourseTransit\Services\MoodleEnrollmentService::enroll(
             $email,
             $first,
             $last,
@@ -124,10 +129,20 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
             $address,
             $product_id
         );
+
+        if ($enrolled) {
+            $core_items_enrolled++;
+        }
     }
 
-    // Mark order as enrolled
-    $order->update_meta_data('_coursetransit_enrolled', 1);
+    // Only mark the order as enrolled when at least one course enrollment
+    // actually completed. This metadata is also used by the Courses screen
+    // as the source of truth for direct course enrollments.
+    if ($core_items_enrolled > 0) {
+        $order->update_meta_data('_coursetransit_enrolled', 1);
+    } else {
+        $order->delete_meta_data('_coursetransit_enrolled');
+    }
     $order->save();
 }, 10, 1);
 

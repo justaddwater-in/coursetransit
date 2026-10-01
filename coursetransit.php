@@ -3,7 +3,7 @@
  * Plugin Name: CourseTransit
  * Plugin URI: https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/
  * Description: A WooCommerce integration for Moodle that syncs courses and helps manage online course sales from WordPress.
- * Version: 1.4.4
+ * Version: 2.0
  * Author: JustAddWater
  * Author URI: https://justaddwater.in/
  * License: GPLv3 or later
@@ -27,7 +27,16 @@ if (!defined('COURSETRANSIT_FILE')) {
 define('COURSETRANSIT_PATH', plugin_dir_path(__FILE__));
 define('COURSETRANSIT_URL', plugin_dir_url(__FILE__));
 define('COURSETRANSIT_ASSETS_URL', plugin_dir_url(__FILE__) . 'assets/');
-define('COURSETRANSIT_VERSION', '1.4.4');
+define('COURSETRANSIT_VERSION', '2.0');
+
+// Public Core API version used by extensions such as CourseTransit Pro.
+if (!defined('COURSETRANSIT_API_VERSION')) {
+    define('COURSETRANSIT_API_VERSION', '1.0.0');
+}
+
+if (!defined('COURSETRANSIT_IS_CORE')) {
+    define('COURSETRANSIT_IS_CORE', true);
+}
 
 
 /**
@@ -63,6 +72,10 @@ foreach ($coursetransit_bootstrap_files as $coursetransit_file) {
         require_once $path;
     }
 }
+
+// Signal that the CourseTransit Core bootstrap has loaded. Add-ons should
+// use this hook to register their integrations without replacing Core files.
+do_action('coursetransit_loaded', COURSETRANSIT_VERSION, COURSETRANSIT_API_VERSION);
 
 // WooCommerce dependency check
 add_action('plugins_loaded', function () {
@@ -109,6 +122,7 @@ register_activation_hook(__FILE__, function () {
     }
 
     delete_option('coursetransit_install_consent_snooze_until');
+    delete_option('coursetransit_install_consent_result');
 
     ob_end_clean();
 });

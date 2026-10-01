@@ -1,406 +1,159 @@
-// Default template content
-const defaultTemplates = {
-    enrollment: {
-        subject: 'You are enrolled in {course_name}',
-        body: `
-            <p>Hi {first_name},</p>
-
-            <p>
-                We’re excited to let you know that you’ve been successfully enrolled in:
-            </p>
-
-            <p style="font-size: 16px;">
-                <strong>{course_name}</strong>
-            </p>
-
-            <p>
-                You can start learning immediately by logging into your dashboard here:
-            </p>
-
-            <p>
-                <a href="{login_url}" target="_blank" rel="noopener">
-                    Access your course
-                </a>
-            </p>
-
-            <hr />
-
-            <strong>Your account details:</strong>
-
-            <ul>
-                <li>Email: {email}</li>
-                <li>Password: {password}</li>
-            </ul>
-
-            <p>
-                If you have any questions, just reply to this email — we’re happy to help.
-            </p>
-
-            <p>
-                Happy learning,<br>
-                <strong>The {site_name} Team</strong>
-            </p>
-
-            <p style="font-size:12px;color:#6b7280;">
-                If the button above doesn’t work, copy and paste this link into your browser:<br>
-                {login_url}
-            </p>
-            `
-    },
-
-    enrollment_existing: {
-        subject: 'You are enrolled in {course_name}',
-        body: `
-            <p>Hi {first_name},</p>
-
-            <p>
-                You have been successfully added to the course:
-            </p>
-
-            <p style="font-size: 16px;">
-                <strong>{course_name}</strong>
-            </p>
-
-            <p>
-                You can continue learning by logging into your dashboard:
-            </p>
-
-            <p>
-                <a href="{login_url}" target="_blank" rel="noopener">
-                    Go to your dashboard
-                </a>
-            </p>
-
-            <p>
-                Happy learning,<br>
-                <strong>The {site_name} Team</strong>
-            </p>
-            `
-    }
-};
+const defaultTemplates = (typeof CourseTransitEmailConfig !== 'undefined' && CourseTransitEmailConfig.templates) ? CourseTransitEmailConfig.templates : {};
+const templateOptions = (typeof CourseTransitEmailConfig !== 'undefined' && CourseTransitEmailConfig.options) ? CourseTransitEmailConfig.options : {};
+const basePreview = (typeof CourseTransitEmailConfig !== 'undefined' && CourseTransitEmailConfig.preview) ? CourseTransitEmailConfig.preview : {};
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    let lastFocused = null;
-
+    const form = document.getElementById('coursetransit-email-form');
+    const select = document.getElementById('coursetransit-template-select');
     const subject = document.getElementById('coursetransit-subject');
     const textarea = document.getElementById('body');
-    const button = document.getElementById('coursetransit-load-default');
+    const defaultButton = document.getElementById('coursetransit-load-default');
+    const previewButton = document.getElementById('coursetransit-preview');
+    const testButton = document.getElementById('coursetransit-send-test');
+    const count = document.getElementById('ct-subject-count');
+    const status = document.getElementById('coursetransit-template-status');
+    if (!form || !select) return;
 
-    // Track focus
-    if (subject) subject.addEventListener('focus', () => lastFocused = 'subject');
-    if (textarea) textarea.addEventListener('focus', () => lastFocused = 'body');
+    let lastTarget = 'body';
 
-    // Handle tag click
-    document.querySelectorAll('.coursetransit-tag').forEach(tag => {
-        tag.style.cursor = 'pointer';
-
-        tag.addEventListener('click', function () {
-            const value = this.dataset.tag;
-
-            // 1. Insert into subject if last focused
-            if (lastFocused === 'subject' && subject) {
-                insertAtCursor(subject, value);
-                subject.focus();
-                return;
-            }
-
-            // 2. Try TinyMCE
-            if (typeof tinymce !== 'undefined') {
-                const editor = tinymce.get('body');
-                if (editor && !editor.isHidden()) {
-                    editor.execCommand('mceInsertContent', false, value);
-                    editor.focus();
-                    return;
-                }
-            }
-
-            // 3. Fallback to textarea
-            if (textarea) {
-                insertAtCursor(textarea, value);
-                textarea.focus();
-            }
-        });
-    });
-
-
-
-
-    // Handle default template button
-    if (button) {
-        button.addEventListener('click', function () {
-
-            Swal.fire({
-                title: 'Use default template?',
-                text: 'This will replace the current email content.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, use default',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#2271b1',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'button button-primary px-4',
-                    cancelButton: 'button button-secondary mx-2',
-                },
-                buttonsStyling: false
-            }).then((result) => {
-
-                if (!result.isConfirmed) return;
-
-                // Try TinyMCE first
-                if (typeof tinymce !== 'undefined') {
-                    const editor = tinymce.get('body');
-                    if (editor && !editor.isHidden()) {
-                        const selected = document.getElementById('coursetransit-template-select').value;
-                        editor.setContent(defaultTemplates[selected]?.body || '');
-                        document.getElementById('coursetransit-subject').value =
-                            defaultTemplates[selected]?.subject || '';
-                        editor.focus();
-                        return;
-                    }
-                }
-
-                // Fallback to textarea
-                if (textarea) {
-                    const selected = document.getElementById('coursetransit-template-select').value;
-                    textarea.value = defaultTemplates[selected]?.body || '';
-
-                    document.getElementById('coursetransit-subject').value =
-                        defaultTemplates[selected]?.subject || '';
-                    textarea.focus();
-                }
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Template Loaded',
-                    text: 'Default email template applied.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-            });
-        });
-    }
-
-    function insertAtCursor(field, value) {
+    const getEditor = () => (typeof tinymce !== 'undefined' ? tinymce.get('body') : null);
+    const getBody = () => {
+        const editor = getEditor();
+        if (editor && !editor.isHidden()) return editor.getContent();
+        return textarea ? textarea.value : '';
+    };
+    const setBody = value => {
+        const editor = getEditor();
+        if (editor) editor.setContent(value || '');
+        if (textarea) textarea.value = value || '';
+    };
+    const insertAtCursor = (field, value) => {
         const start = field.selectionStart ?? field.value.length;
         const end = field.selectionEnd ?? field.value.length;
-
-        field.value =
-            field.value.substring(0, start) +
-            value +
-            field.value.substring(end);
-
+        field.value = field.value.substring(0, start) + value + field.value.substring(end);
         field.selectionStart = field.selectionEnd = start + value.length;
-    }
+    };
+    const refreshCount = () => { if (count) count.textContent = `${(subject.value || '').length} / 180`; };
 
-});
+    subject.addEventListener('focus', () => { lastTarget = 'subject'; });
+    if (textarea) textarea.addEventListener('focus', () => { lastTarget = 'body'; });
+    document.addEventListener('focusin', e => { if (e.target.closest && e.target.closest('.mce-content-body')) lastTarget = 'body'; });
+    subject.addEventListener('input', refreshCount);
+    refreshCount();
 
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    const form = document.getElementById('coursetransit-email-form');
-    if (!form) return;
-
-    let notice = document.getElementById('coursetransit-save-notice');
-
-    if (!notice) {
-        notice = document.createElement('div');
-        notice.id = 'coursetransit-save-notice';
-        form.prepend(notice);
-    }
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const subject = document.getElementById('coursetransit-subject').value;
-
-        let body = '';
-        if (typeof tinymce !== 'undefined') {
-            const editor = tinymce.get('body');
-            if (editor && !editor.isHidden()) {
-                body = editor.getContent();
-            }
-        }
-
-        if (!body) {
-            body = document.getElementById('body').value;
-        }
-
-        const data = new FormData();
-        const template = document.getElementById('coursetransit-template-select').value;
-
-        data.append('action', 'coursetransit_save_email_template');
-        data.append('_ajax_nonce', CourseTransitAjax.nonce);
-        data.append('template', template);
-        data.append('subject', subject);
-        data.append('body', body);
-
-        fetch(CourseTransitAjax.ajax_url, {
-            method: 'POST',
-            body: data
-        })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Template Saved',
-                        text: res.data?.message || 'Email template saved successfully.',
-                        timer: 1800,
-                        showConfirmButton: false
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Save Failed',
-                        text: res.data?.message || 'Error saving template.'
-                    });
-                }
-            })
-            .catch(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Save Failed',
-                    text: 'Unable to save template. Please try again.'
-                });
-            });
-    });
-
-});
-
-document.addEventListener('DOMContentLoaded', function () {
-
-    const testBtn = document.getElementById('coursetransit-send-test');
-    if (!testBtn) return;
-
-    testBtn.addEventListener('click', function () {
-
-        Swal.fire({
-            title: 'Send Test Email',
-            input: 'email',
-            inputLabel: 'Recipient email address',
-            inputPlaceholder: 'you@example.com',
-            showCancelButton: true,
-            confirmButtonText: 'Send Test',
-            confirmButtonColor: '#2271b1',
-            reverseButtons: true,
-            customClass: {
-                confirmButton: 'button button-primary px-4',
-                cancelButton: 'button button-secondary mx-2'
-            },
-            buttonsStyling: false,
-            inputValidator: value => {
-                if (!value) return 'Please enter an email address';
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Enter a valid email';
-            }
-        }).then(result => {
-
-            if (!result.isConfirmed) return;
-
-            // Collect subject + body
-            const subject = document.getElementById('coursetransit-subject').value;
-
-            let body = '';
-            if (typeof tinymce !== 'undefined') {
-                const editor = tinymce.get('body');
-                if (editor && !editor.isHidden()) {
-                    body = editor.getContent();
-                }
-            }
-            if (!body) body = document.getElementById('body').value;
-
-            const data = new FormData();
-            const template = document.getElementById('coursetransit-template-select').value;
-
-            data.append('action', 'coursetransit_send_test_email');
-            data.append('_ajax_nonce', CourseTransitAjax.nonce);
-            data.append('template', template);
-            data.append('email', result.value);
-            data.append('subject', subject);
-            data.append('body', body);
-
-            Swal.fire({
-                title: 'Sending…',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            fetch(CourseTransitAjax.ajax_url, { method: 'POST', body: data })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Email Sent',
-                            text: 'Test email delivered successfully.'
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Send Failed',
-                            text: res.data?.error || 'Unable to send email.'
-                        });
-                    }
-                })
-                .catch(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Send Failed',
-                        text: 'Server error occurred.'
-                    });
-                });
+    function renderTags(templateKey) {
+        const groups = {
+            'Recipient': ['{first_name}', '{last_name}', '{email}', '{username}', '{password}'],
+            'Course': ['{course_name}', '{bundle_name}', '{course_count}', '{course_list}'],
+            'Purchase & Quote': ['{total_seats}', '{order_number}', '{quote_number}'],
+            'Account & Site': ['{site_name}', '{login_url}', '{set_password_url}', '{my_licenses_url}', '{my_quotes_url}']
+        };
+        const tags = (typeof CourseTransitEmailConfig !== 'undefined' && CourseTransitEmailConfig.tags && CourseTransitEmailConfig.tags[templateKey]) || {};
+        const holder = document.getElementById('coursetransit-tag-groups');
+        if (!holder) return;
+        holder.innerHTML = '';
+        Object.keys(groups).forEach(group => {
+            const available = groups[group].filter(tag => Object.prototype.hasOwnProperty.call(tags, tag));
+            if (!available.length) return;
+            const section = document.createElement('section');
+            section.className = 'ct-tag-group';
+            section.innerHTML = `<h6>${group}</h6><div class="ct-tag-list">${available.map(tag => `<button type="button" class="ct-tag-chip coursetransit-tag" data-tag="${tag}"><span>${tags[tag]}</span><code>${tag}</code></button>`).join('')}</div>`;
+            holder.appendChild(section);
         });
-    });
+        holder.querySelectorAll('.coursetransit-tag').forEach(bindTag);
+    }
 
-});
+    function bindTag(tag) {
+        tag.addEventListener('click', function () {
+            const value = this.dataset.tag;
+            if (lastTarget === 'subject') {
+                insertAtCursor(subject, value);
+                subject.focus();
+                refreshCount();
+                return;
+            }
+            const editor = getEditor();
+            if (editor) {
+                editor.execCommand('mceInsertContent', false, value);
+                editor.focus();
+                return;
+            }
+            if (textarea) { insertAtCursor(textarea, value); textarea.focus(); }
+        });
+    }
+    document.querySelectorAll('.coursetransit-tag').forEach(bindTag);
 
-// Load template on selection change
-document.addEventListener('DOMContentLoaded', function () {
+    function applyTemplate(data, key) {
+        const savedSubject = (data && data.subject || '').trim();
+        const savedBody = (data && data.body || '').trim();
+        const defaults = defaultTemplates[key] || {};
+        subject.value = savedSubject || defaults.subject || '';
+        setBody(savedBody || defaults.body || '');
+        status.textContent = savedSubject || savedBody ? 'Editing saved template' : 'Editing default template';
+        refreshCount();
+        renderTags(key);
+    }
 
-    const select = document.getElementById('coursetransit-template-select');
-    if (!select) return;
-
-    select.addEventListener('change', function () {
-
+    function loadTemplate(key) {
         const data = new FormData();
         data.append('action', 'coursetransit_get_email_template');
         data.append('_ajax_nonce', CourseTransitAjax.nonce);
-        data.append('template', this.value);
-
+        data.append('template', key);
         fetch(CourseTransitAjax.ajax_url, { method: 'POST', body: data })
             .then(r => r.json())
-            .then(res => {
-                if (!res.success) return;
+            .then(res => { if (res.success) applyTemplate(res.data || {}, key); });
+    }
 
-                const selected = select.value;
+    select.addEventListener('change', () => loadTemplate(select.value));
 
-                const subject = res.data?.subject?.trim()
-                    ? res.data.subject
-                    : defaultTemplates[selected].subject;
-
-                const body = res.data?.body?.trim()
-                    ? res.data.body
-                    : defaultTemplates[selected].body;
-
-                document.getElementById('coursetransit-subject').value = subject;
-
-                const applyBody = () => {
-                    const editor = tinymce.get('body');
-
-                    if (editor && !editor.isHidden()) {
-                        editor.setContent(body);
-                    } else {
-                        document.getElementById('body').value = body;
-                    }
-                };
-
-                if (typeof tinymce !== 'undefined' && tinymce.get('body')) {
-                    applyBody();
-                } else {
-                    setTimeout(applyBody, 100);
-                }
-            });
+    defaultButton.addEventListener('click', function () {
+        const key = select.value;
+        Swal.fire({ title: 'Use default template?', text: 'Your current edits for this template will be replaced.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Use Default', cancelButtonText: 'Cancel', reverseButtons: true }).then(result => {
+            if (!result.isConfirmed) return;
+            applyTemplate({}, key);
+            Swal.fire({ icon: 'success', title: 'Default loaded', text: 'The default template is ready to save.', timer: 1300, showConfirmButton: false });
+        });
     });
 
+    previewButton.addEventListener('click', function () {
+        const key = select.value;
+        const replacements = basePreview[key] || basePreview.enrollment || {};
+        let html = getBody();
+        Object.keys(replacements).forEach(tag => { html = html.split(tag).join(replacements[tag]); });
+        Swal.fire({ title: 'Email Preview', html: `<div class="ct-preview-body">${html}</div>`, width: 820, showCloseButton: true, showConfirmButton: false });
+    });
+
+    testButton.addEventListener('click', function () {
+        Swal.fire({ title: 'Send Test Email', input: 'email', inputLabel: 'Recipient email address', inputPlaceholder: 'you@example.com', showCancelButton: true, confirmButtonText: 'Send Test', reverseButtons: true, inputValidator: value => !value ? 'Please enter an email address' : (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Enter a valid email' : undefined) }).then(result => {
+            if (!result.isConfirmed) return;
+            const data = new FormData();
+            data.append('action', 'coursetransit_send_test_email');
+            data.append('_ajax_nonce', CourseTransitAjax.nonce);
+            data.append('template', select.value);
+            data.append('email', result.value);
+            data.append('subject', subject.value);
+            data.append('body', getBody());
+            Swal.fire({ title: 'Sending…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            fetch(CourseTransitAjax.ajax_url, { method: 'POST', body: data }).then(r => r.json()).then(res => {
+                if (res.success) Swal.fire({ icon: 'success', title: 'Test email sent', text: res.data?.message || 'WordPress accepted the email.' });
+                else Swal.fire({ icon: 'error', title: 'Send failed', text: res.data?.error || res.data?.message || 'Unable to send the test email.' });
+            }).catch(() => Swal.fire({ icon: 'error', title: 'Send failed', text: 'The server returned an unexpected response.' }));
+        });
+    });
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const data = new FormData();
+        data.append('action', 'coursetransit_save_email_template');
+        data.append('_ajax_nonce', CourseTransitAjax.nonce);
+        data.append('template', select.value);
+        data.append('subject', subject.value);
+        data.append('body', getBody());
+        fetch(CourseTransitAjax.ajax_url, { method: 'POST', body: data }).then(r => r.json()).then(res => {
+            if (res.success) { status.textContent = 'Saved just now'; Swal.fire({ icon: 'success', title: 'Template saved', timer: 1400, showConfirmButton: false }); }
+            else Swal.fire({ icon: 'error', title: 'Save failed', text: res.data?.message || res.data || 'Unable to save template.' });
+        }).catch(() => Swal.fire({ icon: 'error', title: 'Save failed', text: 'Unable to save the template. Please try again.' }));
+    });
+
+    if (typeof CourseTransitEmailConfig !== 'undefined' && CourseTransitEmailConfig.tags) renderTags(select.value);
 });

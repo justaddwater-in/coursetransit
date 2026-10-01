@@ -83,7 +83,7 @@ class CoursesController extends BaseController
         // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
         $orders = wc_get_orders([
             'limit' => -1,
-            'status' => ['wc-processing', 'wc-completed'],
+            'status' => ['wc-completed'],
             'return' => 'ids',
         ]);
 
@@ -132,23 +132,50 @@ class CoursesController extends BaseController
             $enrolled_count = 0;
 
             if ($product_id) {
-
                 foreach ($orders as $order_id) {
-
                     $order = wc_get_order($order_id);
 
                     if (!$order) {
                         continue;
                     }
 
-                    foreach ($order->get_items() as $item) {
+                    // Only completed orders marked by the enrollment workflow
+                    // count as an actual course enrollment. Processing orders
+                    // may still be awaiting payment/enrollment.
+                    if (!$order->get_meta('_coursetransit_enrolled', true)) {
+                        continue;
+                    }
 
-                        if ((int) $item->get_product_id() === $product_id) {
-                            $enrolled_count++;
+                    foreach ($order->get_items() as $item) {
+                        if ((int) $item->get_product_id() !== $product_id) {
+                            continue;
                         }
+
+                        // Pro team/seat-top-up orders purchase license capacity,
+                        // not an already-enrolled learner. Pro counts the actual
+                        // learner assignments through the enrollment-count hook.
+                        $purchase_type = (string) $item->get_meta('_coursetransit_purchase_type', true);
+                        if (in_array($purchase_type, ['team', 'seat_topup'], true)) {
+                            continue;
+                        }
+
+                        $enrolled_count++;
                     }
                 }
             }
+
+            /*
+             * Pro can add enrollment sources that are not represented by a
+             * normal WooCommerce course order (bulk-license learners and
+             * bundle enrollments). Free remains the owner of the Courses UI;
+             * Pro only extends the count through this public filter.
+             */
+            $enrolled_count = (int) apply_filters(
+                'coursetransit_course_enrolled_count',
+                $enrolled_count,
+                (int) ($row['id'] ?? 0),
+                $product_id
+            );
 
             /* ----------------------------------------
              * IMAGE
@@ -423,7 +450,7 @@ class CoursesController extends BaseController
             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
             $orders = wc_get_orders([
                 'limit' => -1,
-                'status' => ['wc-processing', 'wc-completed'],
+                'status' => ['wc-completed'],
                 'return' => 'ids',
             ]);
 
@@ -435,17 +462,44 @@ class CoursesController extends BaseController
                     continue;
                 }
 
+                // Only completed orders marked by the enrollment workflow count
+                // as an actual direct course enrollment.
+                if (!$order->get_meta('_coursetransit_enrolled', true)) {
+                    continue;
+                }
+
                 foreach ($order->get_items() as $item) {
 
                     if (
                         (int) $item->get_product_id()
-                        === (int) $course['wc_product_id']
+                        !== (int) $course['wc_product_id']
                     ) {
-                        $enrolled_count++;
+                        continue;
                     }
+
+                    // Pro team/seat-top-up orders purchase license capacity;
+                    // their actual learner assignments are added by Pro.
+                    $purchase_type = (string) $item->get_meta('_coursetransit_purchase_type', true);
+                    if (in_array($purchase_type, ['team', 'seat_topup'], true)) {
+                        continue;
+                    }
+
+                    $enrolled_count++;
                 }
             }
         }
+
+        /*
+         * Pro can add enrollment sources that are not represented by a
+         * normal WooCommerce course order (bulk-license learners and
+         * bundle enrollments).
+         */
+        $enrolled_count = (int) apply_filters(
+            'coursetransit_course_enrolled_count',
+            $enrolled_count,
+            (int) ($course['id'] ?? 0),
+            (int) ($course['wc_product_id'] ?? 0)
+        );
 
         /* ===============================
          * CATEGORIES
@@ -1010,33 +1064,50 @@ class CoursesController extends BaseController
 
         $settings = get_option('coursetransit_settings', []);
 
-        $settings['default_enrollment_period'] = isset($_POST['default_enrollment_period'])
-            ? intval(wp_unslash($_POST['default_enrollment_period']))
-            : 0;
+        if (isset($_POST['default_enrollment_period'])) {
+            $settings['default_enrollment_period'] = intval(wp_unslash($_POST['default_enrollment_period']));
+        }
 
-        $settings['product_status'] = isset($_POST['product_status'])
-            ? sanitize_text_field(wp_unslash($_POST['product_status']))
-            : 'publish';
+        if (isset($_POST['product_status'])) {
+            $settings['product_status'] = sanitize_text_field(wp_unslash($_POST['product_status']));
+        }
 
-        $settings['product_content_sync'] = isset($_POST['product_content_sync'])
-            ? sanitize_text_field(wp_unslash($_POST['product_content_sync']))
-            : 'all';
+        if (isset($_POST['product_content_sync'])) {
+            $settings['product_content_sync'] = sanitize_text_field(wp_unslash($_POST['product_content_sync']));
+        }
 
-        $settings['sync_curriculum'] = isset($_POST['sync_curriculum'])
-            ? sanitize_text_field(wp_unslash($_POST['sync_curriculum']))
-            : 'all';
+        if (isset($_POST['sync_curriculum'])) {
+            $settings['sync_curriculum'] = sanitize_text_field(wp_unslash($_POST['sync_curriculum']));
+        }
 
-        $settings['category_sync'] = isset($_POST['category_sync'])
-            ? sanitize_text_field(wp_unslash($_POST['category_sync']))
-            : 'all';
+        if (isset($_POST['category_sync'])) {
+            $settings['category_sync'] = sanitize_text_field(wp_unslash($_POST['category_sync']));
+        }
 
-        $settings['image_sync'] = isset($_POST['image_sync'])
-            ? sanitize_text_field(wp_unslash($_POST['image_sync']))
-            : 'all';
+        if (isset($_POST['image_sync'])) {
+            $settings['image_sync'] = sanitize_text_field(wp_unslash($_POST['image_sync']));
+        }
 
-        $settings['missing_course_action'] = isset($_POST['missing_course_action'])
-            ? sanitize_text_field(wp_unslash($_POST['missing_course_action']))
-            : 'draft';
+        if (isset($_POST['missing_course_action'])) {
+            $settings['missing_course_action'] = sanitize_text_field(wp_unslash($_POST['missing_course_action']));
+        }
+
+        $coursetransit_filtered_settings = apply_filters(
+            'coursetransit_save_course_settings',
+            $settings,
+            $_POST
+        );
+
+        if (is_wp_error($coursetransit_filtered_settings)) {
+            wp_send_json_error(
+                ['message' => $coursetransit_filtered_settings->get_error_message()],
+                400
+            );
+        }
+
+        $settings = is_array($coursetransit_filtered_settings)
+            ? $coursetransit_filtered_settings
+            : $settings;
 
         Logger::debug('Saving CourseTransit settings', $settings);
 

@@ -7,6 +7,7 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$coursetransit_pro_active = (bool) apply_filters('coursetransit_pro_active', false);
 ?>
 
 <!-- PAGE HEADER -->
@@ -15,15 +16,41 @@ if (!defined('ABSPATH')) {
         <h3 class="page-title">Courses</h3>
     </div>
     <div class="col-6 d-flex align-items-center justify-content-sm-end justify-content-center">
+        <?php
+        $coursetransit_course_actions = [
+            [
+                'id' => 'coursetransit-import-courses',
+                'class' => 'button button-secondary mr-2',
+                'label' => __('Select & Sync Courses', 'coursetransit'),
+                'pro' => true,
+                'feature' => 'selective-sync',
+            ],
+            [
+                'id' => 'coursetransit-sync-courses',
+                'class' => 'button button-secondary',
+                'label' => __('Sync All Courses', 'coursetransit'),
+            ],
+        ];
+        $coursetransit_course_actions = apply_filters(
+            'coursetransit_course_actions',
+            $coursetransit_course_actions
+        );
+        ?>
         <div class="d-flex gap-2" role="group" aria-label="Page actions">
-            <button type="button" id="coursetransit-import-courses" class="button button-secondary mr-2">
-                Select &amp; Sync Courses
-                <span class="ct-pro-badge">PRO</span>
-            </button>
-            <button type="button" id="coursetransit-sync-courses" class="button button-secondary">
-                Sync All Courses
-            </button>
-
+            <?php foreach ($coursetransit_course_actions as $action): ?>
+                <button
+                    type="button"
+                    id="<?php echo esc_attr($action['id'] ?? ''); ?>"
+                    class="<?php echo esc_attr($action['class'] ?? 'button button-secondary'); ?>"
+                    <?php if (!empty($action['pro'])): ?>
+                        data-pro-feature="<?php echo esc_attr($action['feature'] ?? ''); ?>"
+                    <?php endif; ?>>
+                    <?php echo esc_html($action['label'] ?? ''); ?>
+                    <?php if (!empty($action['pro'])): ?>
+                        <span class="ct-pro-badge">PRO</span>
+                    <?php endif; ?>
+                </button>
+            <?php endforeach; ?>
         </div>
     </div>
 </div>
@@ -412,6 +439,7 @@ if (!defined('ABSPATH')) {
                 <!-- CONTENT -->
                 <div id="import-content" class="d-none">
 
+                    <?php if (!$coursetransit_pro_active): ?>
                     <!-- DEMO NOTICE -->
                     <div style="
                         background:#fff8e1;
@@ -427,6 +455,7 @@ if (!defined('ABSPATH')) {
                         The courses displayed here are dummy data provided for demonstration purposes only.
                         This allows you to experience and test the course selection and synchronization functionality.
                     </div>
+                    <?php endif; ?>
                     <!-- SELECT ALL -->
                     <div style="margin-bottom:12px;">
                         <label>

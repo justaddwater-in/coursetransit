@@ -14,14 +14,12 @@ delete_option('coursetransit_db_version');
 delete_option('coursetransit_email_templates');
 delete_option('coursetransit_install_consent');
 delete_option('coursetransit_install_consent_snooze_until');
+delete_option('coursetransit_install_consent_result');
 
 /**
  * Remove custom tables
  */
 $coursetransit_tables = [
-    $wpdb->prefix . 'coursetransit_courses',
-    $wpdb->prefix . 'coursetransit_instructors',
-    $wpdb->prefix . 'coursetransit_instructor_course_map',
     $wpdb->prefix . 'coursetransit_logs',
 ];
 
