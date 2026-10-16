@@ -143,10 +143,17 @@ jQuery(function ($) {
         });
     }
 
-    $('#ins-courses').select2({
-        placeholder: 'Select courses',
-        width: '100%'
-    });
+    // Keep the existing instructor drawer/modal unchanged. Only attach the
+    // Select2 dropdown to the modal so it is not clipped by the modal body.
+    const $courseSelect = $('#ins-courses');
+    if ($courseSelect.length && $.fn.select2) {
+        $courseSelect.select2({
+            placeholder: 'Select courses',
+            width: '100%',
+            dropdownParent: $('#coursetransitInstructorModal'),
+            dropdownAutoWidth: false
+        });
+    }
 
     $('#coursetransit-save-instructor').on('click', function () {
 
@@ -165,6 +172,10 @@ jQuery(function ($) {
         const form = $('#coursetransit-instructor-form');
         const data = form.serialize();
 
+        const $saveButton = $('#coursetransit-save-instructor');
+        if ($saveButton.prop('disabled')) return;
+        $saveButton.prop('disabled', true);
+
         $.post(CourseTransitInstructors.ajax_url,
             data + '&action=coursetransit_save_instructor&_ajax_nonce=' + CourseTransitInstructors.nonce
         ).done(res => {
@@ -176,8 +187,15 @@ jQuery(function ($) {
 
             Swal.fire({ icon: 'success', title: 'Saved', timer: 1200, showConfirmButton: false });
 
-            $('#coursetransitInstructorModal').modal('hide');
+            // Bootstrap 5 API; keep the existing instructor modal/drawer DOM and styling.
+            const modalEl = $('#coursetransitInstructorModal')[0];
+            bootstrap.Modal.getOrCreateInstance(modalEl).hide();
             table.ajax.reload(null, false);
+        }).fail(function (xhr) {
+            const message = xhr?.responseJSON?.data?.message || 'Save failed. Please try again.';
+            Swal.fire('Error', message, 'error');
+        }).always(function () {
+            $saveButton.prop('disabled', false);
         });
     });
 

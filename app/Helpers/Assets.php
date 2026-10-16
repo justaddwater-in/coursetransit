@@ -210,10 +210,26 @@ class Assets
             true
         );
 
+        wp_enqueue_style(
+            'coursetransit-select2',
+            COURSETRANSIT_URL . 'assets/css/select2.min.css',
+            [],
+            $version
+        );
+
+
+        wp_enqueue_script(
+            'coursetransit-select2',
+            COURSETRANSIT_URL . 'assets/js/select2.min.js',
+            ['jquery'],
+            $version,
+            true
+        );
+
         wp_enqueue_script(
             'coursetransit-instructors',
             COURSETRANSIT_URL . 'assets/js/instructors.js',
-            ['jquery'],
+            ['jquery', 'coursetransit-select2', 'coursetransit-bootstrap'],
             $version,
             true
         );
@@ -252,22 +268,6 @@ class Assets
         wp_enqueue_script(
             'coursetransit-datatables',
             COURSETRANSIT_URL . 'assets/js/datatables.min.js',
-            ['jquery'],
-            $version,
-            true
-        );
-
-        wp_enqueue_style(
-            'coursetransit-select2',
-            COURSETRANSIT_URL . 'assets/css/select2.min.css',
-            [],
-            $version
-        );
-
-
-        wp_enqueue_script(
-            'coursetransit-select2',
-            COURSETRANSIT_URL . 'assets/js/select2.min.js',
             ['jquery'],
             $version,
             true

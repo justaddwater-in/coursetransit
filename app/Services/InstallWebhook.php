@@ -87,9 +87,9 @@ class InstallWebhook
         $status = get_option(self::OPTION_STATUS, false);
         $result = get_option(self::OPTION_RESULT, false);
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This is a sanitized redirect status for display only; it performs no state change and the action itself verifies its nonce.
         $consent_result = isset($_GET['coursetransit_consent'])
             ? sanitize_key(
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only display state; the state-changing consent action is protected by check_admin_referer().
                 wp_unslash($_GET['coursetransit_consent'])
             )
             : '';

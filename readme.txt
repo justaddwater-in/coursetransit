@@ -1,10 +1,10 @@
-=== CourseTransit - WordPress Moodle Integration ===
+=== CourseTransit ===
 Contributors: justaddwater
 Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -15,6 +15,8 @@ Connect Moodle with WooCommerce. Sync courses, sell them as WooCommerce products
 **CourseTransit** is a WordPress plugin that bridges Moodle LMS and WooCommerce, letting you sell Moodle courses directly from your WordPress site and automatically enroll students the moment a purchase is completed.
 
 No manual enrollment. No toggling between platforms. Just a clean, reliable Moodle–WooCommerce integration that handles the whole workflow for you.
+
+If you are migrating from Edwiser or MooWoodle, feel free to reach support if you need any assistance.
 
 🔗 [Learn more about CourseTransit](https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/)
 
@@ -123,6 +125,12 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 
 == Changelog ==
 
+= 2.1.0 =
+
+* Added CT Courses, CT My Courses, CT Course Overview, and CT Dashboard blocks.
+* Added Moodle course completion progress tracking.
+* Improved block layouts, course selection, compatibility, and stability.
+
 = 2.0 =
 
 * Added support for the CourseTransit Pro extension add-on.
@@ -188,6 +196,10 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 * Activity logging and connection testing
 
 == Upgrade Notice ==
+
+= 2.1.0 =
+
+Adds CT Courses, CT My Courses, CT Course Overview, and CT Dashboard blocks, along with Moodle course progress tracking and compatibility improvements.
 
 = 2.0 =
 
