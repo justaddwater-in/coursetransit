@@ -1,0 +1,34 @@
+/* CourseTransit CT Dashboard: scoped structural styles. */
+.wp-block-coursetransit-dashboard.coursetransit-dashboard,
+.coursetransit-dashboard { box-sizing:border-box; inline-size:100%; max-inline-size:100%; min-inline-size:0; margin-block:var(--wp--preset--spacing--40,2rem); }
+.coursetransit-dashboard__welcome { display:flex; justify-content:space-between; gap:1rem; box-sizing:border-box; max-inline-size:100%; padding:var(--wp--preset--spacing--40,1.5rem); border:1px solid var(--wp--preset--color--base-2,#e5e7eb); border-radius:6px; background:var(--wp--preset--color--base,#fff); }
+.coursetransit-dashboard__welcome h2 { margin-block:0 .5rem; }
+.coursetransit-dashboard__welcome p { margin-block:0; }
+.coursetransit-dashboard__stats { display:grid!important; grid-template-columns:repeat(4,minmax(0,1fr))!important; gap:var(--wp--style--block-gap,1rem); margin-block:var(--wp--style--block-gap,1.5rem); max-inline-size:100%; }
+.coursetransit-dashboard__stat { box-sizing:border-box; max-inline-size:100%; padding:var(--wp--preset--spacing--30,1rem); border:1px solid var(--wp--preset--color--base-2,#e5e7eb); border-radius:6px; background:var(--wp--preset--color--base,#fff); }
+.coursetransit-dashboard__stat-value { display:block; line-height:1.2; font-size:1.5em; font-weight:600; }
+.coursetransit-dashboard__stat-label { display:block; margin-block-start:.25rem; }
+.coursetransit-dashboard__overview,.coursetransit-dashboard__recent { max-inline-size:100%; margin-block:var(--wp--style--block-gap,1.5rem); }
+.coursetransit-dashboard__section-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-block-end:.75rem; }
+.coursetransit-dashboard__section-header h3 { margin:0; }
+.coursetransit-dashboard__course-list { display:grid; gap:.75rem; }
+.coursetransit-dashboard__course { display:flex; align-items:center; justify-content:space-between; gap:1rem; min-inline-size:0; padding:var(--wp--preset--spacing--30,1rem); border:1px solid var(--wp--preset--color--base-2,#e5e7eb); border-radius:4px; background:var(--wp--preset--color--base,#fff); box-sizing:border-box; }
+.coursetransit-dashboard__course-main { min-inline-size:0; flex:1 1 auto; }
+.coursetransit-dashboard__course h4 { margin:0; overflow-wrap:anywhere; }
+.coursetransit-dashboard__course h4 a { text-decoration:none; }
+.coursetransit-dashboard__course h4 a:hover,.coursetransit-dashboard__course h4 a:focus-visible { text-decoration:underline; }
+.coursetransit-dashboard__course .coursetransit-progress { margin-block:.75rem 0; }
+.coursetransit-dashboard__course .coursetransit-progress__header { margin-block-end:.5rem; }
+.coursetransit-dashboard__course .coursetransit-progress__track { block-size:.45rem; }
+.coursetransit-dashboard__actions { display:flex; align-items:center; flex-wrap:wrap; gap:.75rem; max-inline-size:100%; margin-block:var(--wp--style--block-gap,1.5rem); }
+@media (max-width:900px) { .coursetransit-dashboard__stats { grid-template-columns:repeat(2,minmax(0,1fr))!important; } }
+@media (max-width:600px) { .coursetransit-dashboard__stats { grid-template-columns:1fr!important; } .coursetransit-dashboard__course { align-items:flex-start; flex-direction:column; } }
+
+.coursetransit-dashboard__overview .coursetransit-progress { margin-block:0; }
+.coursetransit-dashboard__overview .coursetransit-progress__track { block-size:.6rem; }
+.coursetransit-dashboard__continue-wrap { flex:0 0 auto; margin:0; }
+@media (max-width:600px) { .coursetransit-dashboard__continue-wrap { align-self:stretch; } .coursetransit-dashboard__continue-wrap .wp-block-button__link { inline-size:100%; box-sizing:border-box; text-align:center; } }
+.coursetransit-dashboard__all-courses { margin-block-start:1rem; }
+.coursetransit-dashboard__all-courses > summary { cursor:pointer; color:var(--wp--preset--color--contrast,#4f46e5); text-decoration:underline; text-underline-offset:.15em; }
+.coursetransit-dashboard__all-courses[open] > summary { margin-block-end:.75rem; }
+.coursetransit-dashboard__all-courses .coursetransit-dashboard__course-list { margin-block-start:.75rem; }

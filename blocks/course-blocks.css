@@ -1,0 +1,15 @@
+/* Legacy shared CourseTransit block stylesheet retained for backward compatibility.
+ * Individual blocks now own their required styles to avoid cross-block CSS duplication.
+ */
+
+
+/* Shared learner progress UI. Scoped to CourseTransit blocks only. */
+.coursetransit-progress { margin-block: var(--wp--preset--spacing--30, 1rem); min-inline-size: 0; }
+.coursetransit-progress__header { display:flex; justify-content:space-between; gap:.75rem; margin-block-end:.4rem; font-size:.9em; }
+.coursetransit-progress__label { font-weight:600; }
+.coursetransit-progress__value { font-variant-numeric:tabular-nums; }
+.coursetransit-progress__track { position:relative; display:block; inline-size:100%; block-size:.5rem; overflow:hidden; border-radius:999px; background:var(--wp--preset--color--base-2,#e5e7eb); }
+.coursetransit-progress__fill { display:block; block-size:100%; max-inline-size:100%; border-radius:inherit; background:currentColor; transition:inline-size .2s ease; }
+.coursetransit-progress__status { display:block; margin-block-start:.4rem; font-size:.8em; }
+.coursetransit-progress__status--completed { font-weight:600; }
+.coursetransit-progress--compact { margin-block: .75rem; }

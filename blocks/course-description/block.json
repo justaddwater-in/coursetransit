@@ -1,0 +1,80 @@
+{
+  "apiVersion": 3,
+  "name": "coursetransit/course-description",
+  "title": "CT Course Overview",
+  "description": "Display a professional single-course overview with image, course details, price, learner progress and course link.",
+  "category": "course-transit",
+  "icon": "welcome-learn-more",
+  "textdomain": "coursetransit",
+  "attributes": {
+    "productId": {
+      "type": "number",
+      "default": 0
+    },
+    "courseId": {
+      "type": "number",
+      "default": 0
+    },
+    "showImage": {
+      "type": "boolean",
+      "default": true
+    },
+    "showTitle": {
+      "type": "boolean",
+      "default": true
+    },
+    "showDescription": {
+      "type": "boolean",
+      "default": true
+    },
+    "showPrice": {
+      "type": "boolean",
+      "default": true
+    },
+    "showCategory": {
+      "type": "boolean",
+      "default": true
+    },
+    "showInstructor": {
+      "type": "boolean",
+      "default": true
+    },
+    "showProgress": {
+      "type": "boolean",
+      "default": true
+    },
+    "buttonText": {
+      "type": "string",
+      "default": "View Course"
+    },
+    "imageSize": {
+      "type": "string",
+      "default": "large"
+    },
+    "imageRatio": {
+      "type": "string",
+      "default": "16-9"
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    }
+  },
+  "editorScript": "coursetransit-course-description-editor",
+  "style": "file:./style.css",
+  "editorStyle": "file:./style.css",
+  "render": "file:./render.php"
+}

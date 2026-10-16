@@ -1,0 +1,76 @@
+{
+  "apiVersion": 3,
+  "name": "coursetransit/my-courses",
+  "title": "CT My Courses",
+  "description": "Display courses enrolled by the current learner.",
+  "category": "course-transit",
+  "icon": "welcome-learn-more",
+  "textdomain": "coursetransit",
+  "attributes": {
+    "limit": {
+      "type": "number",
+      "default": 6
+    },
+    "columns": {
+      "type": "number",
+      "default": 3
+    },
+    "showImage": {
+      "type": "boolean",
+      "default": true
+    },
+    "showDescription": {
+      "type": "boolean",
+      "default": true
+    },
+    "showProgress": {
+      "type": "boolean",
+      "default": true
+    },
+    "sort": {
+      "type": "string",
+      "default": "recent"
+    },
+    "buttonText": {
+      "type": "string",
+      "default": "Continue Course"
+    },
+    "imageSize": {
+      "type": "string",
+      "default": "medium_large"
+    },
+    "imageRatio": {
+      "type": "string",
+      "default": "16-9"
+    },
+    "showHeading": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "align": [
+      "wide",
+      "full"
+    ],
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    }
+  },
+  "editorScript": "coursetransit-my-courses-editor",
+  "style": "file:./style.css",
+  "editorStyle": "file:./style.css",
+  "render": "file:./render.php"
+}

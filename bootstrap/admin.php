@@ -157,63 +157,77 @@ add_action('init', function () {
 
 add_filter('the_content', function ($content) {
 
-    if (!is_singular('ctransit_instructor')) {
+    if (!is_singular('ctransit_instructor') || !in_the_loop() || !is_main_query()) {
         return $content;
     }
 
-    $avatar = get_post_meta(get_the_ID(), '_coursetransit_avatar', true);
-    $headline = get_post_meta(get_the_ID(), '_coursetransit_headline', true);
-    $courses = get_post_meta(get_the_ID(), '_coursetransit_courses', true);
-    $focus = get_post_meta(get_the_ID(), '_coursetransit_focus', true);
+    $instructor_id = get_the_ID();
+    $avatar = get_post_meta($instructor_id, '_coursetransit_avatar', true);
+    $headline = get_post_meta($instructor_id, '_coursetransit_headline', true);
+    $courses = get_post_meta($instructor_id, '_coursetransit_courses', true);
+    $expertise = get_post_meta($instructor_id, '_coursetransit_expertise', true);
+    $bio = trim((string) get_post_field('post_content', $instructor_id));
 
-    // fallback avatar
     if (!$avatar) {
         $avatar = COURSETRANSIT_ASSETS_URL . 'images/avatar.png';
     }
 
-    // safe arrays
     $courses = is_array($courses) ? $courses : [];
-    $focus = is_array($focus) ? $focus : [];
+    $expertise = is_array($expertise) ? $expertise : array_filter(array_map('trim', explode(',', (string) $expertise)));
 
     ob_start();
     ?>
+    <div class="ct-instructor-profile">
+        <?php if ($headline) : ?>
+            <p class="ct-instructor-profile__headline"><?php echo esc_html($headline); ?></p>
+        <?php endif; ?>
 
-
-    <div class="ct-instructor-single">
-        <!-- Avatar -->
-        <img src="<?php echo esc_url($avatar); ?>" class="ct-instructor-avatar">
-
-        <!-- Info -->
-        <div class="ct-instructor-content">
-
-            <!-- Name -->
-
-
-            <!-- Headline -->
-            <?php if ($headline): ?>
-                <p class="ct-instructor-headline">
-                    <?php echo esc_html($headline); ?>
-                </p>
-            <?php endif; ?>
-
-            <!-- Focus Areas -->
-            <?php if (!empty($focus)): ?>
-                <div class="ct-instructor-focus">
-                    <?php foreach ($focus as $f): ?>
-                        <span class="ct-instructor-focus-item">
-                            <?php echo esc_html($f); ?>
-                        </span>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
+        <div class="ct-instructor-profile__intro">
+            <img src="<?php echo esc_url($avatar); ?>" class="ct-instructor-profile__avatar" alt="<?php echo esc_attr(get_the_title($instructor_id)); ?>">
         </div>
 
-    </div>
+        <?php if ($bio !== '') : ?>
+            <section class="ct-instructor-profile__about">
+                <h2><?php echo esc_html__('About', 'coursetransit'); ?></h2>
+                <?php echo wp_kses_post(wpautop($bio)); ?>
+            </section>
+        <?php endif; ?>
 
+        <?php $expertise_items = array_values(array_filter(array_map('trim', array_map('strval', $expertise)))); ?>
+        <?php if ($expertise_items) : ?>
+            <section class="ct-instructor-profile__section">
+                <h2><?php echo esc_html__('Expertise', 'coursetransit'); ?></h2>
+                <p><?php echo esc_html(implode(', ', $expertise_items)); ?></p>
+            </section>
+        <?php endif; ?>
+
+        <?php if ($courses) : ?>
+            <?php $course_links = []; ?>
+            <?php foreach ($courses as $course_id) : ?>
+                <?php
+                $course_id = absint($course_id);
+                $course_post = $course_id ? get_post($course_id) : null;
+                if (!$course_post || $course_post->post_type !== 'product' || $course_post->post_status !== 'publish') {
+                    continue;
+                }
+                $course_links[$course_id] = get_the_title($course_id);
+                ?>
+            <?php endforeach; ?>
+            <?php if ($course_links) : ?>
+                <section class="ct-instructor-profile__section">
+                    <h2><?php echo esc_html__('Courses', 'coursetransit'); ?></h2>
+                    <ul class="ct-instructor-profile__courses">
+                        <?php foreach ($course_links as $course_id => $course_title) : ?>
+                            <li><a href="<?php echo esc_url(get_permalink($course_id)); ?>"><?php echo esc_html($course_title); ?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
     <?php
 
-    return ob_get_clean() . $content;
+    return ob_get_clean();
 });
 
 add_filter('the_excerpt', function ($excerpt) {

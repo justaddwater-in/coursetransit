@@ -1,0 +1,56 @@
+{
+  "apiVersion": 3,
+  "name": "coursetransit/dashboard",
+  "title": "CT Dashboard",
+  "description": "Display a learner dashboard with course and account information.",
+  "category": "course-transit",
+  "icon": "dashboard",
+  "textdomain": "coursetransit",
+  "attributes": {
+    "showWelcome": {
+      "type": "boolean",
+      "default": true
+    },
+    "showStats": {
+      "type": "boolean",
+      "default": true
+    },
+    "showActions": {
+      "type": "boolean",
+      "default": true
+    },
+    "showRecentCourses": {
+      "type": "boolean",
+      "default": true
+    },
+    "showOverallProgress": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "html": false,
+    "anchor": true,
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "align": [
+      "wide",
+      "full"
+    ],
+    "color": {
+      "background": true,
+      "text": true,
+      "link": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    }
+  },
+  "editorScript": "coursetransit-dashboard-editor",
+  "style": "file:./style.css",
+  "editorStyle": "file:./style.css",
+  "render": "file:./render.php"
+}

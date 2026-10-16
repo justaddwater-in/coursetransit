@@ -527,46 +527,64 @@ body.coursetransit-page #wpbody-content>.error {
 }
 
 /* ===============================
-   INSTRUCTOR FRONTEND
+   INSTRUCTOR PROFILE
+   Theme-friendly: inherit typography and colors; scope all layout styles.
    =============================== */
-
-.ct-instructor-single {
-    background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
+.ct-instructor-profile {
+    max-width: 100%;
+    margin: 1.5em 0;
 }
 
-.ct-instructor-avatar {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
+.ct-instructor-profile__headline {
+    margin: 0 0 1rem;
+    font-size: 0.95em;
+    line-height: 1.5;
+    opacity: 0.78;
+}
+
+.ct-instructor-profile__intro {
+    margin: 0 0 1.5rem;
+}
+
+.ct-instructor-profile__avatar {
+    display: block;
+    width: min(100%, 240px);
+    height: auto;
+    aspect-ratio: 1 / 1;
     object-fit: cover;
+    border-radius: 8px;
 }
 
-.ct-instructor-content {
-    flex: 1;
+.ct-instructor-profile__section,
+.ct-instructor-profile__about {
+    margin: 1.5rem 0;
 }
 
-.ct-instructor-headline {
-    margin: 0 0 10px;
-    color: #666;
+.ct-instructor-profile__section h2,
+.ct-instructor-profile__about h2 {
+    margin: 0 0 0.5rem;
+    font: inherit;
+    font-size: 1.2em;
+    font-weight: 600;
 }
 
-.ct-instructor-focus {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+.ct-instructor-profile__section p,
+.ct-instructor-profile__about p {
+    margin: 0 0 0.75em;
 }
 
-.ct-instructor-focus-item {
-    background: #f1f1f1;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
+.ct-instructor-profile__courses {
+    margin: 0;
+    padding-inline-start: 1.25em;
+}
+
+.ct-instructor-profile__courses li + li {
+    margin-top: 0.4em;
+}
+
+.ct-instructor-profile a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
 }
 
 .ct-instructor-excerpt {
@@ -584,28 +602,19 @@ body.coursetransit-page #wpbody-content>.error {
 
 .ct-instructor-excerpt-headline {
     margin: 2px 0;
-    color: #666;
-    font-size: 13px;
+    color: inherit;
+    font-size: 0.9em;
+    opacity: 0.78;
 }
 
 .ct-instructor-excerpt-text {
     margin: 6px 0;
-    color: #444;
-    font-size: 14px;
+    font-size: 0.95em;
 }
 
-@media (max-width: 768px) {
-
-    .ct-instructor-single,
-    .ct-instructor-excerpt {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .ct-instructor-avatar,
-    .ct-instructor-excerpt-avatar {
-        width: 70px;
-        height: 70px;
+@media (max-width: 600px) {
+    .ct-instructor-profile__avatar {
+        width: min(100%, 180px);
     }
 }
 
@@ -1073,4 +1082,58 @@ select.form-control:not([size]):not([multiple]) {
 #coursetransit-orders-tabs .nav-link:focus,
 #coursetransit-orders-tabs .nav-link:active {
     text-decoration: none !important;
+}
+
+/* Instructor Select2: keep selected course names inside the field. */
+#coursetransitInstructorModal #ins-courses + .select2-container {
+    width: 100% !important;
+    max-width: 100%;
+    min-width: 0;
+}
+
+#coursetransitInstructorModal #ins-courses + .select2-container
+.select2-selection--multiple {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+#coursetransitInstructorModal #ins-courses + .select2-container
+.select2-selection__choice {
+    max-width: calc(100% - 8px);
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+#coursetransitInstructorModal #ins-courses + .select2-container
+.select2-selection__choice__display {
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Instructor single profile detail sections */
+.ct-instructor-section {
+    margin-top: 18px;
+}
+
+.ct-instructor-section h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    line-height: 1.4;
+}
+
+.ct-instructor-courses {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.ct-instructor-courses li {
+    margin: 0 0 6px;
+}
+
+.ct-instructor-courses a {
+    text-decoration: underline;
 }

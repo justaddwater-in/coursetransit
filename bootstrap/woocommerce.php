@@ -91,10 +91,8 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
         return;
     }
 
-    // Prevent duplicate enrollment
-    if ($order->get_meta('_coursetransit_enrolled')) {
-        return;
-    }
+    // Individual line-item enrollment flags prevent one successful course
+    // from making every course in a multi-course order look enrolled.
 
 
     $email = $order->get_billing_email();
@@ -117,6 +115,11 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
     $core_items_enrolled = 0;
 
     foreach ($order->get_items() as $item) {
+        if ($item->get_meta('_coursetransit_item_enrolled', true)) {
+            $core_items_enrolled++;
+            continue;
+        }
+
         $product_id = $item->get_product_id();
 
         $enrolled = \CourseTransit\Services\MoodleEnrollmentService::enroll(
@@ -131,7 +134,12 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
         );
 
         if ($enrolled) {
+            $item->update_meta_data('_coursetransit_item_enrolled', 1);
+            $item->save();
             $core_items_enrolled++;
+        } else {
+            $item->delete_meta_data('_coursetransit_item_enrolled');
+            $item->save();
         }
     }
 

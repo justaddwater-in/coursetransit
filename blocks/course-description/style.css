@@ -1,0 +1,73 @@
+/* CourseTransit CT Course Description / single-course box. */
+.wp-block-coursetransit-course-description.coursetransit-single-course,
+.coursetransit-single-course {
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    margin-block: var(--wp--preset--spacing--40, 2rem);
+}
+.coursetransit-single-course__card {
+    display:grid;
+    grid-template-columns:minmax(0, 42%) minmax(0, 58%);
+    align-items:stretch;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--wp--preset--color--base-2, #e5e7eb);
+    border-radius: 4px;
+    background: var(--wp--preset--color--base, #fff);
+}
+.coursetransit-single-course__image {
+    align-self:start;
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: var(--wp--preset--color--base-2, #f3f4f6);
+}
+.coursetransit-single-course__image a { display: block; inline-size: 100%; max-inline-size: 100%; margin: 0; padding: 0; }
+.coursetransit-single-course__image img {
+    display: block !important;
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    margin: 0 !important;
+    padding: 0;
+    box-sizing: border-box;
+    object-fit: cover;
+}
+.coursetransit-single-course__image--16-9 { aspect-ratio: 16 / 9; }
+.coursetransit-single-course__image--4-3 { aspect-ratio: 4 / 3; }
+.coursetransit-single-course__image--1-1 { aspect-ratio: 1 / 1; }
+.coursetransit-single-course__image--16-9 a,
+.coursetransit-single-course__image--4-3 a,
+.coursetransit-single-course__image--1-1 a,
+.coursetransit-single-course__image--16-9 img,
+.coursetransit-single-course__image--4-3 img,
+.coursetransit-single-course__image--1-1 img { block-size: 100% !important; }
+.coursetransit-single-course__image--auto { aspect-ratio: auto; }
+.coursetransit-single-course__image--auto img { block-size: auto !important; object-fit: initial; }
+.coursetransit-single-course__content { min-inline-size: 0; max-inline-size: 100%; padding: var(--wp--preset--spacing--40, 1.5rem); box-sizing: border-box; }
+.coursetransit-single-course__title { max-inline-size: 100%; margin-block: 0 var(--wp--preset--spacing--20, .75rem); overflow-wrap: anywhere; }
+.coursetransit-single-course__meta { display: flex; flex-wrap: wrap; gap: .5rem 1rem; max-inline-size: 100%; margin-block-end: var(--wp--preset--spacing--30, 1rem); font-size: .95em; }
+.coursetransit-single-course__meta-item { margin: 0; overflow-wrap: anywhere; }
+.coursetransit-single-course__price { margin-block-end: var(--wp--preset--spacing--30, 1rem); font-weight: 600; }
+.coursetransit-single-course__description { max-inline-size: 100%; margin-block-end: var(--wp--preset--spacing--30, 1rem); overflow-wrap: anywhere; }
+.coursetransit-single-course__description > :first-child { margin-block-start: 0; }
+.coursetransit-single-course__description > :last-child { margin-block-end: 0; }
+.coursetransit-single-course__actions { margin-block-start: var(--wp--preset--spacing--30, 1rem); }
+.coursetransit-single-course .coursetransit-block-notice { box-sizing: border-box; max-inline-size: 100%; }
+
+.coursetransit-progress { margin-block: var(--wp--preset--spacing--30, 1rem); min-inline-size:0; }
+.coursetransit-progress__header { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-block-end:.4rem; font-size:.9em; }
+.coursetransit-progress__label { font-weight:600; }
+.coursetransit-progress__value { font-variant-numeric:tabular-nums; }
+.coursetransit-progress__track { position:relative; display:block; inline-size:100%; block-size:.5rem; overflow:hidden; border-radius:999px; background:var(--wp--preset--color--base-2,#e5e7eb); }
+.coursetransit-progress__fill { display:block; block-size:100%; max-inline-size:100%; border-radius:inherit; background:currentColor; }
+.coursetransit-progress__status { display:block; margin-block-start:.4rem; font-size:.8em; }
+
+@media (max-width:782px) { .coursetransit-single-course__card { grid-template-columns:1fr; } }

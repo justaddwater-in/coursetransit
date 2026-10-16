@@ -371,11 +371,17 @@ class InstructorController extends BaseController
 
         if ($id) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-            $wpdb->update($table, $data, ['id' => $id]);
+            $updated = $wpdb->update($table, $data, ['id' => $id]);
+            if ($updated === false) {
+                wp_send_json_error(['message' => 'Failed to update instructor.'], 500);
+            }
         } else {
             $data['created_at'] = time();
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-            $wpdb->insert($table, $data);
+            $inserted = $wpdb->insert($table, $data);
+            if ($inserted === false) {
+                wp_send_json_error(['message' => 'Failed to save instructor.'], 500);
+            }
             $id = $wpdb->insert_id;
         }
 
@@ -455,6 +461,9 @@ class InstructorController extends BaseController
         update_post_meta($post_id, '_coursetransit_focus', $focus);
         update_post_meta($post_id, '_coursetransit_expertise', $expertise);
 
+        // Clear cached instructor data so Edit immediately reads the updated record.
+        wp_cache_delete('coursetransit_instructor_' . $id);
+        wp_cache_delete('coursetransit_instructor_courses_' . $id);
         wp_cache_delete('coursetransit_instructors_total');
 
         wp_send_json_success(['message' => 'Instructor saved']);
