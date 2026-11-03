@@ -4,7 +4,7 @@ Tags: moodle, woocommerce, lms, elearning, course enrollment
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.1.0
+Stable tag: 2.1.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.txt
 
@@ -15,8 +15,6 @@ Connect Moodle with WooCommerce. Sync courses, sell them as WooCommerce products
 **CourseTransit** is a WordPress plugin that bridges Moodle LMS and WooCommerce, letting you sell Moodle courses directly from your WordPress site and automatically enroll students the moment a purchase is completed.
 
 No manual enrollment. No toggling between platforms. Just a clean, reliable Moodle–WooCommerce integration that handles the whole workflow for you.
-
-If you are migrating from Edwiser or MooWoodle, feel free to reach support if you need any assistance.
 
 🔗 [Learn more about CourseTransit](https://justaddwater.in/products/coursetransit-wordpress-moodle-integration/)
 
@@ -48,6 +46,8 @@ CourseTransit is built for anyone running Moodle as their LMS and WooCommerce as
 * 🏫 Schools, universities, and training centers
 * 🤝 NGOs and non-profit organizations
 * 📜 Professional certification and compliance training providers
+
+If you are migrating from Edwiser or MooWoodle, feel free to reach support if you need any assistance.
 
 **Requirements**
 
@@ -121,9 +121,19 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 8. Customize enrollment email templates using dynamic tags.
 9. Configure Moodle connection settings and test API connectivity.
 10. Configure synchronization settings including enrollment period, product status, content sync, and missing course behaviour.
-
+11. Add the CT Courses block to any page and configure sorting, category, instructor, columns, and image options from the block settings.
+12. CourseTransit course cards rendered on the live site, showing pricing and a direct link to each course.
 
 == Changelog ==
+
+= 2.1.1 =
+
+* Fixed: A single broken or unknown-type WooCommerce order no longer causes a fatal error on the Dashboard, Orders screen, or My Courses block.
+* Fixed: "Sold individually", "Enroll Now" button text, checkout redirects, and auto-complete now apply only to CourseTransit course products, not to other WooCommerce products.
+* Fixed: Orders without CourseTransit courses are ignored on order completion instead of being processed.
+* Fixed: Order edit links now work with WooCommerce High-Performance Order Storage (HPOS).
+* Show only published courses in Instructor selection.
+* Keep course images consistent with WooCommerce product images.
 
 = 2.1.0 =
 
@@ -196,6 +206,11 @@ Visit the [CourseTransit product page](https://justaddwater.in/products/coursetr
 * Activity logging and connection testing
 
 == Upgrade Notice ==
+
+= 2.1.1 =
+
+Stability fix: prevents fatal errors caused by a single broken order and stops CourseTransit from changing the behavior of non-course WooCommerce products.
+Improves course selection and keeps course images consistent with WooCommerce product images.
 
 = 2.1.0 =
 

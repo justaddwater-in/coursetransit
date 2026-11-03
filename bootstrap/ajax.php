@@ -53,7 +53,7 @@ add_action('wp_ajax_coursetransit_order_details', function () {
 
 add_action('wp_ajax_coursetransit_settings_test', function () {
 
-    check_ajax_referer('coursetransit_nonce');
+    check_ajax_referer('coursetransit_settings_nonce', '_wpnonce');
 
     if (!current_user_can('manage_options')) {
         wp_send_json_error(['error' => 'Unauthorized']);

@@ -128,7 +128,7 @@ class Assets
             true
         );
 
-        wp_localize_script('coursetransit-settings', 'CourseTransitAjax', [
+        wp_localize_script('coursetransit-settings', 'CourseTransitSettings', [
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('coursetransit_settings_nonce'),
         ]);
@@ -248,7 +248,7 @@ class Assets
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('coursetransit_nonce'),
             'moodle_base_url' => rtrim($settings['moodle_url'] ?? '', '/'),
-            'placeholder_image' => COURSETRANSIT_URL . 'assets/img/placeholder.png', // optional if you use it
+            'placeholder_image' => COURSETRANSIT_ASSETS_URL . 'images/course-placeholder1.png'
         ]);
 
         wp_localize_script('coursetransit-instructors', 'CourseTransitInstructors', [

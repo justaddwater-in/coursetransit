@@ -27,15 +27,13 @@ class OrdersController extends BaseController
             ], 403);
         }
 
-        $query = new WC_Order_Query([
-            'limit' => 150, //  load latest 150 orders 
+        // Safe loader: a single broken order must not break the orders screen.
+        $orders = coursetransit_get_orders_safe([
+            'limit' => 150, //  load latest 150 orders
             'status' => ['completed', 'processing', 'on-hold', 'failed'],
-            'return' => 'objects',
             'orderby' => 'date',
             'order' => 'DESC',
         ]);
-
-        $orders = $query->get_orders();
         $data = [];
 
         foreach ($orders as $order) {
@@ -45,9 +43,7 @@ class OrdersController extends BaseController
             }
             $data[] = [
                 'order_id' => '<a href="' . esc_url(
-                    admin_url(
-                        'post.php?post=' . $order->get_id() . '&action=edit'
-                    )
+                    $order->get_edit_order_url()
                 ) . '" target="_blank">
                     #' . $order->get_id() . '
                 </a>',
@@ -151,7 +147,7 @@ class OrdersController extends BaseController
                 'coursetransit' => [
                     'enrolled' => (bool) $order->get_meta('_coursetransit_enrolled'),
                 ],
-                'edit_link' => admin_url('post.php?post=' . $order->get_id() . '&action=edit'),
+                'edit_link' => $order->get_edit_order_url(),
             ]
         ]);
     }

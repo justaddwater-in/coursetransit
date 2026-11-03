@@ -386,7 +386,23 @@ class CourseSyncService
 
         $wpImageUrl = null;
 
-        $courseDetails = $courseDetails ?? $client->fetchCourseById($course['id']);
+        if ($courseDetails === null) {
+            try {
+                $courseDetails = $client->fetchCourseById((int) $course['id']);
+            } catch (\Throwable $e) {
+                // The bulk course record is still valid. An optional detail/image
+                // lookup failure must not abort Sync All or mark products missing.
+                Logger::warning(
+                    'Unable to fetch additional Moodle course details; continuing with bulk data',
+                    [
+                        'module' => 'course_sync',
+                        'moodle_course_id' => (int) $course['id'],
+                        'error_message' => $e->getMessage(),
+                    ]
+                );
+                $courseDetails = [];
+            }
+        }
 
         /* ===============================
          * COURSE CATEGORY SYNC
@@ -450,7 +466,7 @@ class CourseSyncService
 
                 if (
                     !empty($file['mimetype']) &&
-                    str_starts_with($file['mimetype'], 'image/') &&
+                    strpos($file['mimetype'], 'image/') === 0 &&
                     !empty($file['fileurl'])
                 ) {
                     $imageUrl = $file['fileurl'];

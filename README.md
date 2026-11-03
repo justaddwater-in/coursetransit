@@ -400,6 +400,15 @@ Check:
 
 # Changelog
 
+### 2.1.1
+
+- Fixed: A single broken or unknown-type WooCommerce order no longer causes a fatal error on the Dashboard, Orders screen, or My Courses block.
+- Fixed: "Sold individually", "Enroll Now" button text, checkout redirects, and auto-complete now apply only to CourseTransit course products.
+- Fixed: Orders without CourseTransit courses are ignored on order completion.
+- Fixed: Order edit links now work with WooCommerce HPOS.
+- Show only published courses in Instructor selection.
+- Keep course images consistent with WooCommerce product images.
+
 ### 2.1.0
 
 - Added CT Courses, CT My Courses, CT Course Overview, and CT Dashboard blocks.

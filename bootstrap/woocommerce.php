@@ -2,6 +2,68 @@
 defined('ABSPATH') || exit;
 
 /**
+ * Is this product a CourseTransit course or bundle? Anything else is a regular
+ * WooCommerce product and must never be touched by this plugin.
+ */
+if (!function_exists('coursetransit_is_course_product')) {
+    function coursetransit_is_course_product($product_id): bool
+    {
+        static $cache = [];
+        $product_id = (int) $product_id;
+        if ($product_id <= 0) {
+            return false;
+        }
+        if (isset($cache[$product_id])) {
+            return $cache[$product_id];
+        }
+        if (
+            get_post_meta($product_id, '_coursetransit_moodle_id', true)
+            || get_post_meta($product_id, '_coursetransit_bundle_id', true)
+            || get_post_meta($product_id, '_coursetransit_product_type', true) === 'bundle'
+        ) {
+            return $cache[$product_id] = true;
+        }
+        global $wpdb;
+        $table = $wpdb->prefix . 'coursetransit_courses';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+        $mapped = $wpdb->get_var($wpdb->prepare("SELECT 1 FROM {$table} WHERE wc_product_id = %d LIMIT 1", $product_id));
+        return $cache[$product_id] = (bool) $mapped;
+    }
+}
+
+/**
+ * Fetch orders without letting one broken order (unknown order type, corrupt
+ * row, removed plugin's order type) take the whole page down. IDs are queried
+ * first, then every order is loaded on its own; unreadable ones are skipped.
+ */
+if (!function_exists('coursetransit_get_orders_safe')) {
+    function coursetransit_get_orders_safe(array $args = []): array
+    {
+        if (!function_exists('wc_get_orders') || !function_exists('wc_get_order')) {
+            return [];
+        }
+        $args['return'] = 'ids';
+        try {
+            $ids = wc_get_orders($args);
+        } catch (\Throwable $e) {
+            return [];
+        }
+        $orders = [];
+        foreach ((array) $ids as $id) {
+            try {
+                $order = wc_get_order((int) $id);
+            } catch (\Throwable $e) {
+                continue;
+            }
+            if ($order instanceof \WC_Order) {
+                $orders[] = $order;
+            }
+        }
+        return $orders;
+    }
+}
+
+/**
  * Detect manual status changes on CourseTransit-linked products.
  *
  * Fires on every WC product save. If the save is NOT coming from
@@ -35,22 +97,36 @@ add_action('woocommerce_before_product_object_save', function ($product) {
 });
 
 // Always sell courses individually
-add_filter('woocommerce_is_sold_individually', '__return_true');
+add_filter('woocommerce_is_sold_individually', function ($sold_individually, $product) {
+    if ($product instanceof \WC_Product && coursetransit_is_course_product($product->get_id())) {
+        return true;
+    }
+    return $sold_individually;
+}, 10, 2);
 
 // Change button text on product page
-add_filter('woocommerce_product_single_add_to_cart_text', function () {
-    return __('Enroll Now', 'coursetransit');
-});
+add_filter('woocommerce_product_single_add_to_cart_text', function ($text, $product = null) {
+    if ($product instanceof \WC_Product && coursetransit_is_course_product($product->get_id())) {
+        return __('Enroll Now', 'coursetransit');
+    }
+    return $text;
+}, 10, 2);
 
 // Redirect directly to checkout after add to cart
-add_filter('woocommerce_add_to_cart_redirect', function () {
-    return wc_get_checkout_url();
-});
+add_filter('woocommerce_add_to_cart_redirect', function ($url, $adding_to_cart = null) {
+    if ($adding_to_cart instanceof \WC_Product && coursetransit_is_course_product($adding_to_cart->get_id())) {
+        return wc_get_checkout_url();
+    }
+    return $url;
+}, 10, 2);
 
 // Redirect to checkout on cart errors
-add_filter('woocommerce_cart_redirect_after_error', function () {
-    return wc_get_checkout_url();
-});
+add_filter('woocommerce_cart_redirect_after_error', function ($url, $product_id = 0) {
+    if (coursetransit_is_course_product((int) $product_id)) {
+        return wc_get_checkout_url();
+    }
+    return $url;
+}, 10, 2);
 
 
 
@@ -113,6 +189,7 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
     );
 
     $core_items_enrolled = 0;
+    $course_items_seen = 0;
 
     foreach ($order->get_items() as $item) {
         if ($item->get_meta('_coursetransit_item_enrolled', true)) {
@@ -121,6 +198,12 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
         }
 
         $product_id = $item->get_product_id();
+
+        // Regular WooCommerce product: not ours, ignore it.
+        if (!coursetransit_is_course_product($product_id)) {
+            continue;
+        }
+        $course_items_seen++;
 
         $enrolled = \CourseTransit\Services\MoodleEnrollmentService::enroll(
             $email,
@@ -141,6 +224,11 @@ add_action('woocommerce_order_status_completed', function ($order_id) {
             $item->delete_meta_data('_coursetransit_item_enrolled');
             $item->save();
         }
+    }
+
+    // No CourseTransit items in this order: leave it untouched.
+    if ($course_items_seen === 0 && $core_items_enrolled === 0) {
+        return;
     }
 
     // Only mark the order as enrolled when at least one course enrollment
@@ -424,7 +512,7 @@ add_filter('woocommerce_product_tabs', function ($tabs) {
         // Detect intro paragraph
         $is_intro =
             strlen($first) > 60 ||                // long sentence
-            str_ends_with($first, ':') ||         // ends with colon
+            substr($first, -1) === ':' ||         // ends with colon
             preg_match('/[.!?]$/', $first);       // ends with punctuation
 
         echo '<div style="padding:10px 0;">';
@@ -547,17 +635,22 @@ add_filter('woocommerce_payment_complete_order_status', function ($status, $orde
         return $status;
     }
 
-    // Ensure ALL items are virtual (courses)
+    // Ensure ALL items are virtual, and at least one is a CourseTransit course.
+    // Orders of other virtual products keep WooCommerce's default status.
+    $has_course = false;
     foreach ($order->get_items() as $item) {
         $product = $item->get_product();
 
         if (!$product || !$product->is_virtual()) {
             return $status; // keep default (Processing)
         }
+        if (coursetransit_is_course_product($product->get_id())) {
+            $has_course = true;
+        }
     }
 
     // Let Woo naturally mark it Completed
-    return 'completed';
+    return $has_course ? 'completed' : $status;
 }, 20, 3);
 
 /* Remove WooCommerce Reviews Tab */

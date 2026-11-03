@@ -158,7 +158,7 @@ if (!defined('ABSPATH')) {
                 <?php foreach ($latest_orders as $order): ?>
                   <tr>
                     <td>
-                      <a href="<?php echo esc_url(admin_url('post.php?post=' . $order->get_id() . '&action=edit')); ?>"
+                      <a href="<?php echo esc_url($order->get_edit_order_url()); ?>"
                         target="_blank">
                         #<?php echo esc_html($order->get_id()); ?>
                       </a>

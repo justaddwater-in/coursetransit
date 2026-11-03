@@ -113,7 +113,7 @@ $coursetransit_pro_active = (bool) apply_filters('coursetransit_pro_active', fal
 
                             <button type="submit" class="button button-primary">
 
-                                Save Settings
+                                Test &amp; Save
 
                             </button>
 

@@ -182,10 +182,25 @@ class CoursesController extends BaseController
              * ------------------------------------- */
 
             $placeholder = COURSETRANSIT_ASSETS_URL . 'images/course-placeholder1.png';
+            $image_url = '';
 
-            $image_url = !empty($row['course_image_url'])
-                ? esc_url($row['course_image_url'])
-                : esc_url($placeholder);
+            // Keep the Courses list consistent with the current WooCommerce product image.
+            if ($product && $product->get_image_id()) {
+                $product_image_url = wp_get_attachment_image_url($product->get_image_id(), 'thumbnail');
+                if ($product_image_url) {
+                    $image_url = $product_image_url;
+                }
+            }
+
+            if ($image_url === '' && !empty($row['course_image_url'])) {
+                $image_url = $row['course_image_url'];
+            }
+
+            if ($image_url === '') {
+                $image_url = $placeholder;
+            }
+
+            $image_url = esc_url($image_url);
 
             $image = '
                 <img

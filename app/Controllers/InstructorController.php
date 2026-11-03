@@ -535,17 +535,21 @@ class InstructorController extends BaseController
         // Exclude Moodle default/system course (id = 1)
         $where = 'WHERE moodle_id != 1';
 
-        $key = 'ct_courses_dropdown';
+        $key = 'ct_courses_dropdown_v2_published';
 
         $rows = wp_cache_get($key);
 
         if ($rows === false) {
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
+            $posts_table = esc_sql($wpdb->posts);
             $rows = $wpdb->get_results("
-                SELECT id, fullname
-                FROM " . esc_sql($table) . "
-                WHERE moodle_id != 1
-                ORDER BY fullname ASC
+                SELECT c.id, c.fullname
+                FROM " . esc_sql($table) . " AS c
+                INNER JOIN {$posts_table} AS p ON p.ID = c.wc_product_id
+                WHERE c.moodle_id != 1
+                  AND p.post_type = 'product'
+                  AND p.post_status = 'publish'
+                ORDER BY c.fullname ASC
             ");
 
             wp_cache_set($key, $rows, '', 300);

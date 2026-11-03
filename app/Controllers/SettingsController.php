@@ -257,35 +257,32 @@ class SettingsController extends BaseController
             ]);
         }
 
-        // Save settings.
-        // Preserve existing settings.
-        $settings = get_option('coursetransit_settings', []);
+        // A connection-only test must never overwrite saved settings.
+        $testOnly = isset($_POST['test_only'])
+            && sanitize_text_field(wp_unslash($_POST['test_only'])) === '1';
 
-        $settings['moodle_url'] = sanitize_text_field($moodleUrl);
-        $settings['moodle_token'] = sanitize_text_field($moodleToken);
+        if (!$testOnly) {
+            // Preserve existing settings while updating the connection values.
+            $settings = get_option('coursetransit_settings', []);
+            $settings['moodle_url'] = $moodleUrl;
+            $settings['moodle_token'] = $moodleToken;
 
-        update_option(
-            'coursetransit_settings',
-            $settings
-        );
+            update_option('coursetransit_settings', $settings);
 
-        Logger::log(
-            'Settings saved successfully',
-            [
-                'moodle_url' =>
-                    $moodleUrl,
-
-                'token_provided' =>
-                    !$isMasked,
-
-                'json_response' =>
-                    $connectiondata,
-            ]
-        );
+            Logger::log(
+                'Settings saved successfully',
+                [
+                    'moodle_url' => $moodleUrl,
+                    'token_provided' => !$isMasked,
+                    'json_response' => $connectiondata,
+                ]
+            );
+        }
 
         wp_send_json_success([
-            'message' =>
-                'Connection verified successfully',
+            'message' => $testOnly
+                ? 'Connection verified successfully'
+                : 'Connection verified and settings saved successfully',
 
             'connection' => [
                 'site_name' =>

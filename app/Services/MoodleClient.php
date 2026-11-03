@@ -383,13 +383,16 @@ class MoodleClient
             )
         ) {
 
+            $message = $response->get_error_message();
+
             Logger::log(
                 'fetchCourseById WP_ERROR',
-                $response
-                    ->get_error_message()
+                $message
             );
 
-            return [];
+            throw new \RuntimeException(
+                'Unable to fetch Moodle course ' . $courseId . ': ' . $message
+            );
         }
 
         $status =
@@ -407,15 +410,14 @@ class MoodleClient
             Logger::log(
                 'fetchCourseById HTTP_ERROR',
                 [
-                    'status' =>
-                        $status,
-
-                    'body' =>
-                        $body,
+                    'status' => $status,
+                    'body' => $body,
                 ]
             );
 
-            return [];
+            throw new \RuntimeException(
+                'Moodle course lookup failed with HTTP status ' . $status
+            );
         }
 
         $json = json_decode(
@@ -434,7 +436,9 @@ class MoodleClient
                 $body
             );
 
-            return [];
+            throw new \RuntimeException(
+                'Moodle course lookup returned invalid JSON.'
+            );
         }
 
         // Moodle exception.
@@ -449,7 +453,10 @@ class MoodleClient
                 $json
             );
 
-            return [];
+            throw new \RuntimeException(
+                'Moodle course lookup failed: ' .
+                sanitize_text_field((string) ($json['message'] ?? $json['error'] ?? 'Moodle API exception'))
+            );
         }
 
         // CourseTransit wrapper error.
@@ -478,7 +485,9 @@ class MoodleClient
                 $errordata
             );
 
-            return [];
+            throw new \RuntimeException(
+                'CourseTransit Moodle API wrapper reported a failed course lookup.'
+            );
         }
 
         // Decode wrapped Moodle data.
@@ -496,19 +505,21 @@ class MoodleClient
                 );
         }
 
-        if (
-            !is_array(
+        if (!is_array($coursedata) || !isset($coursedata['courses']) || !is_array($coursedata['courses'])) {
+            Logger::log(
+                'fetchCourseById INVALID_DATA',
                 $coursedata
-            )
-        ) {
-            return [];
+            );
+
+            throw new \RuntimeException(
+                'Moodle course lookup returned an unexpected data structure.'
+            );
         }
 
-        // Moodle returns:
-        // ['courses' => [...]]
-        return
-            $coursedata['courses'][0]
-            ?? [];
+        // An empty courses array is a valid "not found" response.
+        // Transport, HTTP, JSON, Moodle and wrapper errors throw above so
+        // syncOne() cannot mistake an API failure for a deleted course.
+        return $coursedata['courses'][0] ?? [];
     }
 
 

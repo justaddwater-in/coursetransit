@@ -26,13 +26,12 @@ if (!function_exists('coursetransit_blocks_get_enrolled_product_data')) {
             return $cached;
         }
 
-        $orders = wc_get_orders([
+        $orders = coursetransit_get_orders_safe([
             'customer_id' => $user_id,
             'status'      => $statuses,
             'limit'       => -1,
             'orderby'     => 'date',
             'order'       => 'DESC',
-            'return'      => 'objects',
             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- WooCommerce order meta is the canonical enrollment flag; customer and paid-status filters constrain this lookup.
             'meta_query'  => [
                 [
@@ -247,10 +246,15 @@ if (!function_exists('coursetransit_blocks_course_image')) {
         $url = trim((string) ($course['course_image_url'] ?? ''));
         $allowed_sizes = ['thumbnail', 'medium', 'medium_large', 'large', 'full'];
         $size = in_array($size, $allowed_sizes, true) ? $size : 'medium_large';
-        $attachment_id = $url !== '' ? (int) attachment_url_to_postid($url) : 0;
 
-        if (!$attachment_id && $product && $product->get_image_id()) {
-            $attachment_id = (int) $product->get_image_id();
+        // Prefer the current WooCommerce featured image so manual product edits
+        // are reflected immediately throughout CourseTransit blocks.
+        $attachment_id = ($product && is_object($product) && is_a($product, 'WC_Product'))
+            ? (int) $product->get_image_id()
+            : 0;
+
+        if (!$attachment_id && $url !== '') {
+            $attachment_id = (int) attachment_url_to_postid($url);
         }
 
         if ($attachment_id) {

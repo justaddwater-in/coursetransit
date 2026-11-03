@@ -193,14 +193,11 @@ foreach ($courses as $course) {
     $summary = $summary !== '' ? wp_trim_words($summary, 22, '…') : '';
 
     $image_url = trim((string) ($course['course_image_url'] ?? ''));
-    $image_attachment_id = 0;
+    // The WooCommerce featured image is the source of truth after manual edits.
+    $image_attachment_id = (int) $product->get_image_id();
 
-    if ($image_url !== '') {
+    if (!$image_attachment_id && $image_url !== '') {
         $image_attachment_id = (int) attachment_url_to_postid($image_url);
-    }
-
-    if (!$image_attachment_id && $product->get_image_id()) {
-        $image_attachment_id = (int) $product->get_image_id();
     }
 
     if ($image_attachment_id) {

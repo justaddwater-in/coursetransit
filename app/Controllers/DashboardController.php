@@ -7,7 +7,8 @@ class DashboardController extends BaseController
     {
         global $wpdb;
 
-        $all_orders = wc_get_orders([
+        // Safe loader: a single broken order must not crash the dashboard.
+        $all_orders = coursetransit_get_orders_safe([
             'limit' => -1,
             'status' => array_keys(wc_get_order_statuses()),
         ]);

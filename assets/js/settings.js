@@ -52,15 +52,15 @@ jQuery(function ($) {
             const isTest = mode === 'test';
 
             Swal.fire({
-                title: isTest ? 'Test Connection?' : 'Save Settings?',
+                title: isTest ? 'Test Connection?' : 'Test & Save Settings?',
                 text: isTest
                     ? 'We will verify the Moodle connection.'
-                    : 'We will verify the connection and save your settings.',
+                    : 'We will test the Moodle connection first, then save your settings if the test succeeds.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: isTest
                     ? 'Test Connection'
-                    : 'Save & Test',
+                    : 'Test & Save',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#2271b1',
                 reverseButtons: true,
@@ -77,18 +77,19 @@ jQuery(function ($) {
                 }
 
                 btn.disabled = true;
+                if (testBtn) testBtn.disabled = true;
 
                 btn.innerText = isTest
                     ? 'Testing connection...'
-                    : 'Saving settings...';
+                    : 'Testing & saving...';
 
                 Swal.fire({
                     title: isTest
                         ? 'Testing connection...'
-                        : 'Saving settings...',
+                        : 'Testing & saving settings...',
                     text: isTest
                         ? 'Please wait while Moodle is being verified.'
-                        : 'Please wait while your settings are being saved.',
+                        : 'Please wait while Moodle is verified and your settings are saved.',
                     allowOutsideClick: false,
                     allowEscapeKey: false,
                     didOpen: () => Swal.showLoading()
@@ -101,12 +102,18 @@ jQuery(function ($) {
                     'coursetransit_settings_test'
                 );
 
-                formData.append(
-                    '_ajax_nonce',
-                    CourseTransitAjax.nonce
+                formData.set(
+                    '_wpnonce',
+                    CourseTransitSettings.nonce
                 );
 
-                fetch(CourseTransitAjax.ajax_url, {
+                if (isTest) {
+                    formData.set('test_only', '1');
+                } else {
+                    formData.delete('test_only');
+                }
+
+                fetch(CourseTransitSettings.ajax_url, {
                     method: 'POST',
                     body: formData
                 })
@@ -126,6 +133,7 @@ jQuery(function ($) {
                         }
 
                         btn.disabled = false;
+                        if (testBtn) testBtn.disabled = false;
                         btn.innerText = originalText;
 
                         if (!json.success) {
@@ -157,7 +165,7 @@ jQuery(function ($) {
                             icon: 'success',
                             title: isTest
                                 ? 'Connection Successful'
-                                : 'Settings Saved',
+                                : 'Connection Tested & Settings Saved',
 
                             html: `
                                 <div style="
@@ -260,6 +268,7 @@ jQuery(function ($) {
                         console.error(error);
 
                         btn.disabled = false;
+                        if (testBtn) testBtn.disabled = false;
 
                         btn.innerText = originalText;
 
